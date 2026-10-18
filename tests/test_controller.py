@@ -279,7 +279,7 @@ class ControllerTests(unittest.TestCase):
             with patch('newpath.controller.save_state',side_effect=interrupted):
                 with self.assertRaises(RuntimeError):
                     run(self.job,data={'kind':'layout','layout':self.scene(0)})
-            self.assertTrue((self.job/'output'/'新路径.pptx').exists())
+            self.assertTrue((self.job/'output'/'PPT Rebuilder King.pptx').exists())
             self.assertEqual(run(self.job)['kind'],'done')
             self.assertEqual(compiler.call_count,1)
 

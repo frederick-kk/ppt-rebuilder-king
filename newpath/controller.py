@@ -132,7 +132,7 @@ def _finish(work, state):
         rendering['compiled_sha256']=sha256(compiled)
         write_json(record,rendering)
     destination=Path(work)/'output';destination.mkdir(exist_ok=True)
-    final=destination/'新路径.pptx'
+    final=destination/'PPT Rebuilder King.pptx'
     if final.exists():
         if sha256(final)!=sha256(compiled): raise ValueError('Refusing to replace an unrelated output presentation.')
     else:
@@ -151,7 +151,7 @@ def _finish(work, state):
         'warnings':state['warnings'],'skipped':native_skipped,
         'controller_wall_seconds':(completed-started).total_seconds(),
         'user_end_to_end_seconds':None,'within_600_seconds':None,
-        'instructions':'Deliver this PowerPoint now and stop. No preview, visual check or further generation is part of this experiment.'}
+        'instructions':'Deliver this PowerPoint now and stop. No preview, visual check or further generation is part of this workflow.'}
     counts=[]
     for task in state['tasks'].values():
         for attempt in range(task['attempt']+1):

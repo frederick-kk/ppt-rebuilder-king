@@ -2,7 +2,7 @@
   "name": "newpath-slide-engine",
   "version": "0.1.0",
   "private": true,
-  "description": "Native slide objects for the Newpath experiment",
+  "description": "Native slide objects for PPT Rebuilder King",
   "dependencies": {
     "jszip": "3.10.1",
     "pptxgenjs": "4.0.1"

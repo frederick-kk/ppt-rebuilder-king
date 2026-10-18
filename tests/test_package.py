@@ -64,7 +64,7 @@ class PackageTests(unittest.TestCase):
     def test_exact_production_allowlist_and_generated_manifest(self):
         result = self.build()
         archive = Path(result["archive"])
-        self.assertEqual(archive.name, "新路径-ChatGPT-20261018-r1.zip")
+        self.assertEqual(archive.name, "PPT Rebuilder King ChatGPT.zip")
         self.assertEqual(archive.parent, self.root / "dist")
         with ZipFile(archive) as zipfile:
             names = zipfile.namelist()
@@ -152,7 +152,7 @@ class PackageTests(unittest.TestCase):
     def test_excluded_reference_files_do_not_change_production_snapshot(self):
         self.assertTrue(hasattr(packager, "freeze_source"), "source freeze API is missing")
         frozen = packager.freeze_source(self.root)
-        self.write("新路径-项目指令.txt", b"outside runtime zip")
+        self.write("PPT Rebuilder King ChatGPT-项目指令.txt", b"outside runtime zip")
         self.write("tests/local-test.py", b"separately frozen test source")
         self.assertEqual(packager.freeze_source(self.root), frozen)
 

@@ -17,7 +17,7 @@ import tempfile
 from zipfile import BadZipFile, ZIP_DEFLATED, ZipFile, ZipInfo
 import zlib
 
-ARCHIVE_NAME = "新路径-ChatGPT-20261018-r1.zip"
+ARCHIVE_NAME = "PPT Rebuilder King ChatGPT.zip"
 MANIFEST_NAME = "MANIFEST.json"
 MANIFEST_FORMAT = "newpath.package-manifest/1"
 ROOT_VERSIONS = {"pptxgenjs": "4.0.1", "jszip": "3.10.1"}

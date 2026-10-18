@@ -1,9 +1,9 @@
 ---
-name: newpath-slide
+name: ppt-rebuilder-king-chatgpt
 description: 根据当前用户截图制作对象可编辑的单页 PowerPoint；使用外部图像工具生成素材，再由本包组装。
 ---
 
-# 新路径
+# PPT Rebuilder King
 
 只处理用户这次明确指定的图片。解压后在本目录运行，不查找历史作业或全局 Skill。需要现有 Python、Pillow、NumPy、Node，以及可实际参考图片的图像生成工具；缺少能力时说明缺项并保留现场，不自动安装或编造产出。
 

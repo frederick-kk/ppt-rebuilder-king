@@ -2,12 +2,10 @@
 
 将一张幻灯片截图还原为可编辑的 PowerPoint：普通正文按可见行建立原生文本框，基础图形、线条、表格和有限公式保持可编辑，艺术字及复杂插画作为独立图片放置。
 
-本项目把图像生成与本地组装连接起来。生成任务由宿主的图像工具完成，程序负责坐标、组件板、裁切去底、任务恢复和 PPTX 写出。
-
 ## 在 ChatGPT 项目中使用
 
-- [完整运行包](dist/新路径-ChatGPT-20261018-r1.zip)
-- [配套项目指令](dist/新路径-项目指令.txt)
+- [完整运行包](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/dist/PPT%20Rebuilder%20King%20ChatGPT.zip)
+- [配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/dist/PPT%20Rebuilder%20King%20ChatGPT-%E9%A1%B9%E7%9B%AE%E6%8C%87%E4%BB%A4.txt)
 
 以下按维护者使用的 Chrome 网页版界面说明，具体按钮名称以你的账号界面为准。聊天环境需要具备代码执行、ZIP 读取/解压及参考图片生成能力。
 
@@ -20,11 +18,11 @@
 ```text
 ppt-rebuilder-king-main/
 └─ dist/
-   ├─ 新路径-ChatGPT-20261018-r1.zip
-   └─ 新路径-项目指令.txt
+   ├─ PPT Rebuilder King ChatGPT.zip
+   └─ PPT Rebuilder King ChatGPT-项目指令.txt
 ```
 
-**上传到 ChatGPT 的是 `dist` 里的 `新路径-ChatGPT-20261018-r1.zip`，这份运行包保持 ZIP 格式即可。** 它已经包含运行源码和所需的 JavaScript 依赖。
+**上传到 ChatGPT 的是 `dist` 里的 `PPT Rebuilder King ChatGPT.zip`，这份运行包保持 ZIP 格式即可。** 它已经包含运行源码和所需的 JavaScript 依赖。
 
 也可以通过上方的两个链接分别下载“完整运行包”和“配套项目指令”，省去下载和解压外层源码包。
 
@@ -34,11 +32,11 @@ ppt-rebuilder-king-main/
 
 ### 3. 上传到项目“来源”
 
-进入项目，点击 **来源**，上传上一步找到的 `新路径-ChatGPT-20261018-r1.zip`。等待上传完成。
+进入项目，点击 **来源**，上传上一步找到的 `PPT Rebuilder King ChatGPT.zip`。等待上传完成。
 
 ### 4. 填写项目指令
 
-点击项目右上角的 **项目设置**，打开下载目录中的 `新路径-项目指令.txt`，把文件里的完整文字粘贴到项目指令中，并保存。
+点击项目右上角的 **项目设置**，打开下载目录中的 `PPT Rebuilder King ChatGPT-项目指令.txt`，把文件里的完整文字粘贴到项目指令中，并保存。
 
 运行包放在项目“来源”里，TXT 文件的内容填写在“项目指令”里。
 
@@ -57,7 +55,7 @@ ppt-rebuilder-king-main/
 在刚才的项目对话中，上传本次要还原的一张截图，同时发送：
 
 ```text
-请读取本项目指定的 PPT Rebuilder ChatGPT ZIP，然后按项目指令和包内工作流，将这张截图还原成可编辑 PPTX。
+请读取本项目指定的 PPT Rebuilder King ChatGPT.zip，然后按项目指令和包内工作流，将这张截图还原成可编辑 PPTX。
 ```
 
 正常完成后，聊天中会提供可编辑 PPTX 文件的下载链接。普通正文为原生可编辑文字，艺术字和复杂插画为可独立移动的图片。
@@ -73,26 +71,6 @@ ppt-rebuilder-king-main/
 - 采用首次技术可用结果；生成失败保存现场，只有用户明确要求才重新开放未完成任务。
 - PPTX 完整写出后停止，不默认追加取证包、预览或自动返修。
 
-## 源码开发
-
-入口为 `python -m newpath`；页面描述格式见 [references/scene.md](references/scene.md)。
-
-```text
-python -m newpath --work /absolute/job --source /absolute/slide.png
-python -m newpath --work /absolute/job --input /absolute/result.json
-python -m newpath --work /absolute/job
-```
-
-`newpath/` 是控制器、素材处理与原生输出实现；`tests/` 是合成输入和 PPTX 结构测试；`scripts/package.py` 用于白名单打包及清单验证。源码运行环境需要现有 Python 3.10+、Pillow、NumPy 和 Node 18+。仓库不提交展开的 `node_modules`，完整运行包已经包含对应依赖，可将其中的 `node_modules` 放在源码根目录用于开发。Python 依赖见 `requirements.txt`。
-
-准备好运行环境后执行离线测试：
-
-```text
-python -m unittest discover -s tests -v
-```
-
-离线测试检查程序行为和文件结构，不替代真实图片效果或 PowerPoint 显示、编辑检查。
-
 ## 能力边界
 
 艺术字及插画是可独立移动的图片；普通文字和支持的基础对象原生制作。公式支持有限表达，不是完整 LaTeX 排版系统。
@@ -102,3 +80,5 @@ python -m unittest discover -s tests -v
 ## 许可证
 
 [MIT License](LICENSE)。第三方运行依赖的许可证随完整运行包保留。
+
+开发者说明见 [DEVELOPING.md](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/DEVELOPING.md)。
