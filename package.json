@@ -1,0 +1,13 @@
+{
+  "name": "newpath-slide-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Native slide objects for the Newpath experiment",
+  "dependencies": {
+    "jszip": "3.10.1",
+    "pptxgenjs": "4.0.1"
+  },
+  "overrides": {
+    "image-size": "2.0.4"
+  }
+}

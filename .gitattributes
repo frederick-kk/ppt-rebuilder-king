@@ -1,0 +1,3 @@
+# Keep tested source bytes stable across Windows and Linux checkouts.
+* -text
+*.zip binary

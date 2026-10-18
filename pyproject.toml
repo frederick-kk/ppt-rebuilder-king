@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "newpath-slide"
+version = "0.1.0"
+description = "Independent staged screenshot-to-PowerPoint experiment"
+requires-python = ">=3.10"
+dependencies = ["Pillow>=10", "numpy>=1.24"]
+
+[tool.setuptools.packages.find]
+include = ["newpath*"]
+
+[tool.setuptools.package-data]
+newpath = ["*.cjs"]

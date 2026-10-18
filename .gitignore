@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.dev/
+jobs/
+dist/
+node_modules/
+.venv/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
