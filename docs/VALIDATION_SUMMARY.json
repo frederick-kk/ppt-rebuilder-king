@@ -1,0 +1,68 @@
+{
+  "schema": "ppt-rebuilder.public-release-validation/1",
+  "date": "2026-10-24",
+  "version": "2026.10.24-beta.1",
+  "environment": {
+    "os": "Windows 10",
+    "python": "3.10.9",
+    "node": "v22.21.0",
+    "npm": "10.9.4",
+    "Pillow": "12.3.0",
+    "NumPy": "2.2.6",
+    "Office": "Microsoft PowerPoint 16.0",
+    "ruler_default_test_font": "Installed Arial 14; alternate-font differences are known"
+  },
+  "unit_tests": {
+    "run": 412,
+    "passed": 401,
+    "skipped": 11,
+    "failures": 0,
+    "errors": 0,
+    "command": "python -B -m unittest discover -s engineering/tests -v",
+    "isolation": "Fresh source ZIP extraction with npm ci; no private diagnostics, PRK diagnostic variables or historic sibling packages",
+    "skipped_test_records": [
+      "test_three_actual_diagnostic_reference_returns_are_rejected (test_board_result_provenance.BoardResultProvenance) ... skipped 'actual native-alpha diagnostic not supplied'",
+      "test_supplied_real_five_backgrounds_and_two_foregrounds_pause_without_new_calls (test_generation_discipline.GenerationDiscipline) ... skipped 'Real diagnostic ZIP not supplied'",
+      "test_linked_report_is_not_followed_and_output_alias_is_refused (test_inspect_job.InspectorTests) ... skipped 'Local symlink permission unavailable: OSError'",
+      "test_actual_three_member_board_recovers_all_assets_with_exact_rgba (test_narrow_native_gutters.NarrowNativeGutters) ... skipped 'actual component placement diagnostic not supplied'",
+      "test_actual_three_boards_recover_all_eleven_with_exact_rgba (test_native_boundary_recovery.NativeBoundaryRecovery) ... skipped 'actual missing-components diagnostic not supplied'",
+      "test_actual_ten_object_layout_no_longer_fails_with_matching_font_missing (test_native_digit_estimation.NativeDigitEstimation) ... skipped 'actual textfit budget diagnostic not supplied'",
+      "test_source_copy_working_png_and_transform_match_frozen_runtime (test_ruler_guide.RulerSourceIntegration) ... skipped 'optional separate frozen runtime not available'",
+      "test_actual_native_layout_overflow_line_is_contained (test_text_overflow_recovery.TextOverflowRecovery) ... skipped 'real overflow diagnostic not supplied'",
+      "test_real_no_alpha_checkerboard_and_no_zero_photo_remain_rejected (test_wordart_edge_overspray.WordartEdgeOverspray) ... skipped 'real title retry evidence not supplied'",
+      "test_real_retry_one_continues_without_losing_any_rgba_or_changing_placement (test_wordart_edge_overspray.WordartEdgeOverspray) ... skipped 'real title retry evidence not supplied'",
+      "test_actual_653_over_217_diagnostic_title_retains_145_high_ink (test_wordart_placement.DiagnosticTitlePlacement) ... skipped 'Set PRK_REAL_TITLE_DIAGNOSTIC to the supplied diagnostic ZIP'"
+    ]
+  },
+  "behavior": {
+    "byte_identical_runtime_behavior_files": 19,
+    "identity_only_reference_changes": true,
+    "existing_cached_case_artworks": 10,
+    "existing_cached_case_native_text_frames": 21,
+    "cached_case_office_pixels_equal_to_approved": true
+  },
+  "Office_editing": {
+    "sample": "examples/synthetic-basic",
+    "private_copy_edit_save_reopen_verified": [
+      "native text",
+      "shape fill",
+      "line",
+      "picture position"
+    ],
+    "public_original_unchanged": true
+  },
+  "dependencies": {
+    "npm_audit_known_vulnerabilities": 0,
+    "npm_audit_query_date": "2026-10-24",
+    "lockfile_unchanged": true,
+    "pinned_distributed_dependency_files": 393,
+    "fresh_npm_ci_and_bundled_builds_byte_equal": true
+  },
+  "provider_image_calls": 0,
+  "limits": [
+    "Beta, not Stable",
+    "Not new model visual or end-to-end timing certification",
+    "Alternate-font ruler layout remains limited",
+    "Pattern scanning is finite and does not certify legal rights or absence of all secrets"
+  ]
+}

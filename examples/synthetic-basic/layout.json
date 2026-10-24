@@ -1,0 +1,80 @@
+{
+  "format": "newpath.scene/1",
+  "items": [
+    {
+      "id": "demo-title",
+      "kind": "art",
+      "box": [
+        180,
+        110,
+        1350,
+        200
+      ],
+      "lettering": "GLOW DEMO",
+      "description": "Synthetic blue outlined artistic title GLOW DEMO, drawn by this fixture program."
+    },
+    {
+      "id": "body-one",
+      "kind": "text",
+      "box": [
+        180,
+        420,
+        1500,
+        90
+      ],
+      "text": "Editable text stays selectable",
+      "size": 48,
+      "color": "20385C"
+    },
+    {
+      "id": "body-two",
+      "kind": "text",
+      "box": [
+        180,
+        535,
+        1500,
+        70
+      ],
+      "text": "Two art images, a shape and a line",
+      "size": 36,
+      "color": "40506A"
+    },
+    {
+      "id": "demo-panel",
+      "kind": "shape",
+      "box": [
+        180,
+        720,
+        650,
+        150
+      ],
+      "shape": "roundRect",
+      "fill": "DCE8FF",
+      "stroke": "5376BF",
+      "stroke_width": 3
+    },
+    {
+      "id": "demo-line",
+      "kind": "line",
+      "points": [
+        180,
+        650,
+        1730,
+        650
+      ],
+      "stroke": "7B91B5",
+      "stroke_width": 3
+    },
+    {
+      "id": "orange-badge",
+      "kind": "art",
+      "box": [
+        1320,
+        710,
+        240,
+        240
+      ],
+      "description": "Synthetic orange circular badge with white concentric rings and central diamond; no lettering."
+    }
+  ]
+}

@@ -1,84 +1,23 @@
-# PPT Rebuilder King · PPT 还原王
+# PPT Rebuilder King
 
-将一张幻灯片截图还原为可编辑的 PowerPoint：普通正文按可见行建立原生文本框，基础图形、线条、表格和有限公式保持可编辑，艺术字及复杂插画作为独立图片放置。
+将单页截图重建为对象可编辑的 PowerPoint：普通正文使用原生文本，复杂艺术字和插画使用独立图片。
 
-## 在 ChatGPT 项目中使用
+**当前版本：2026.10.24-beta.1。仓库目前为 Private，公开前需由维护者明确决定。**
 
-- [完整运行包](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/dist/PPT%20Rebuilder%20King%20ChatGPT.zip)
-- [配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/dist/PPT%20Rebuilder%20King%20ChatGPT-%E9%A1%B9%E7%9B%AE%E6%8C%87%E4%BB%A4.txt)
+- [中文说明与开发入口](README.zh-CN.md)
+- [Beta 1 发行页面与下载](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.10.24-beta.1)
+- [使用说明](docs/USAGE.zh-CN.md) · [已知问题](KNOWN_ISSUES.md) · [验收范围](docs/RELEASE_VALIDATION.zh-CN.md)
 
-以下按维护者使用的 Chrome 网页版界面说明，具体按钮名称以你的账号界面为准。聊天环境需要具备代码执行、ZIP 读取/解压及参考图片生成能力。
+使用时选择发行页面中的 **ChatGPT 运行 ZIP**，并配套使用同版本项目指令。源码 ZIP 用于阅读、开发与构建；两者用途不同。原认可的 Beta 1 运行 ZIP 和源码 ZIP 保持原样，GitHub 仓库另附社区协作资料。
 
-### 1. 下载运行包
+Beta 版受输入、宿主图像工具、字体与运行环境影响；请依据验收范围评估结果，不将测试通过视为所有页面的效果或耗时保证。
 
-在仓库文件列表上方点击绿色 **Code** 按钮，再点击 **Download ZIP**。这会下载整个仓库的源码压缩包。[GitHub 下载说明](https://docs.github.com/en/repositories/working-with-files/using-files/downloading-source-code-archives)
+## 参与与报告
 
-解压下载的外层压缩包，打开其中的 `dist` 文件夹，找到这两个文件：
+[贡献指南](CONTRIBUTING.md) · [行为准则](CODE_OF_CONDUCT.md) · [使用支持](SUPPORT.md) · [安全报告](SECURITY.md)
 
-```text
-ppt-rebuilder-king-main/
-└─ dist/
-   ├─ PPT Rebuilder King ChatGPT.zip
-   └─ PPT Rebuilder King ChatGPT-项目指令.txt
-```
+提交问题前请删除个人信息、密钥、绝对路径及未经授权的图片。安全漏洞请先阅读安全报告流程，勿在普通 Issue 中披露细节。
 
-**上传到 ChatGPT 的是 `dist` 里的 `PPT Rebuilder King ChatGPT.zip`，这份运行包保持 ZIP 格式即可。** 它已经包含运行源码和所需的 JavaScript 依赖。
+## 许可
 
-也可以通过上方的两个链接分别下载“完整运行包”和“配套项目指令”，省去下载和解压外层源码包。
-
-### 2. 新建 ChatGPT 项目
-
-在 ChatGPT 中新建一个项目，例如命名为“PPT 还原王”。先完成下面的文件和指令设置，再从这个项目中开始新对话。项目中的聊天会使用共享的来源与项目指令。[OpenAI 项目说明](https://learn.chatgpt.com/docs/projects)
-
-### 3. 上传到项目“来源”
-
-进入项目，点击 **来源**，上传上一步找到的 `PPT Rebuilder King ChatGPT.zip`。等待上传完成。
-
-### 4. 填写项目指令
-
-点击项目右上角的 **项目设置**，打开下载目录中的 `PPT Rebuilder King ChatGPT-项目指令.txt`，把文件里的完整文字粘贴到项目指令中，并保存。
-
-运行包放在项目“来源”里，TXT 文件的内容填写在“项目指令”里。
-
-### 5. 在项目内开始新对话并选择模型
-
-以下是维护者在本工作流中的当前实测建议：
-
-- **模型：优先选择 5.6。** 维护者近期使用 GPT-6 时遇到过出图问题，当前暂不作为本项目首选。
-- **思考强度：中等到极高。** 按账号界面提供的选项选择。
-- **Pro：如果账号提供 Pro 模式，也可以尝试。** 维护者目前测试较少，效果尚未充分验证。
-
-以上是项目使用经验，不代表 OpenAI 对模型能力的通用结论；可用模型和思考选项以你的账号界面为准。
-
-### 6. 上传截图并发送提示词
-
-在刚才的项目对话中，上传本次要还原的一张截图，同时发送：
-
-```text
-请读取本项目指定的 PPT Rebuilder King ChatGPT.zip，然后按项目指令和包内工作流，将这张截图还原成可编辑 PPTX。
-```
-
-正常完成后，聊天中会提供可编辑 PPTX 文件的下载链接。普通正文为原生可编辑文字，艺术字和复杂插画为可独立移动的图片。
-
-以后还原另一张截图，可以在同一项目中新开对话，复用项目来源和指令。详细执行规则见 [SKILL.md](SKILL.md)。
-
-## 制作流程
-
-当前图片准备 → 背景与完整前景生成 → 一次页面登记 → 分批组件板生成 → 切分去底与原生组装 → PPTX 交付。
-
-- 背景和整页前景分别生成，前景使用洋红底；组件板由程序选择合适的共同底色。
-- 每项只请求一个结果，组件板每批最多三项。已有结果按任务、角色和尝试编号登记，重复登记不会再次生成。
-- 采用首次技术可用结果；生成失败保存现场，只有用户明确要求才重新开放未完成任务。
-- PPTX 完整写出后停止，不默认追加取证包、预览或自动返修。
-
-## 能力边界
-
-艺术字及插画是可独立移动的图片；普通文字和支持的基础对象原生制作。公式支持有限表达，不是完整 LaTeX 排版系统。
-
-生成素材可能发生内容偏差；固定去底和主体筛选可能损失细节，紧裁后填满目标区域可能改变部分比例。单个素材无法提取时会列出缺失，可能继续输出。实际效果和耗时需要结合输入及宿主工具判断，不承诺任意页面在固定时间内完成。
-
-## 许可证
-
-[MIT License](LICENSE)。第三方运行依赖的许可证随完整运行包保留。
-
-开发者说明见 [DEVELOPING.md](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/DEVELOPING.md)。
+第一方代码和文档采用 [MIT](LICENSE)。第三方依赖和外部素材的许可范围见 [NOTICE](NOTICE.md) 与 [第三方许可](THIRD_PARTY_LICENSES.md)。

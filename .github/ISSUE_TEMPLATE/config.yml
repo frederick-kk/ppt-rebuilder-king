@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 使用说明与支持
+    url: https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/SUPPORT.md
+    about: 提交前确认版本、使用方式及脱敏要求。
+  - name: 安全报告流程
+    url: https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/SECURITY.md
+    about: 疑似漏洞请先阅读安全政策，勿在普通 Issue 披露细节。

@@ -1,0 +1,528 @@
+{
+  "origin": "Art-only frozen user diagnostic layouts; title-only planner expectations",
+  "cases": {
+    "round-a": {
+      "source_sha256": "c3344e7e9c832625e29cc71c37d843218bae99238ec483431af4300970387f42",
+      "items": [
+        {
+          "id": "o005",
+          "kind": "art",
+          "order": 4,
+          "box": [
+            575,
+            18,
+            720,
+            197
+          ],
+          "description": "少先队火炬星徽与红金主标题组合，下方红色飘带副标，两侧金色五角星，保持原图红金立体发光材质与完整轮廓",
+          "target": [
+            575,
+            18,
+            720,
+            197
+          ],
+          "presentation": "cutout",
+          "lettering": "中国少先队 竞选大队委员 相信我！我能行！"
+        },
+        {
+          "id": "o006",
+          "kind": "art",
+          "order": 5,
+          "box": [
+            1480,
+            56,
+            355,
+            132
+          ],
+          "description": "右上角红色手写书法两行标语及下划线，笔锋自然、略倾斜",
+          "target": [
+            1480,
+            56,
+            355,
+            132
+          ],
+          "presentation": "cutout",
+          "lettering": "从小立志 做新时代好少年"
+        },
+        {
+          "id": "o007",
+          "kind": "art",
+          "order": 6,
+          "box": [
+            690,
+            228,
+            300,
+            61
+          ],
+          "description": "红色立体横向绶带标题牌，两侧金色五角星，白金色艺术字",
+          "target": [
+            690,
+            228,
+            300,
+            61
+          ],
+          "presentation": "cutout",
+          "lettering": "个人档案"
+        },
+        {
+          "id": "o008",
+          "kind": "art",
+          "order": 7,
+          "box": [
+            1330,
+            228,
+            315,
+            61
+          ],
+          "description": "红色立体横向绶带标题牌，两侧金色五角星，白金色艺术字",
+          "target": [
+            1330,
+            228,
+            315,
+            61
+          ],
+          "presentation": "cutout",
+          "lettering": "我的优势"
+        },
+        {
+          "id": "o009",
+          "kind": "art",
+          "order": 8,
+          "box": [
+            352,
+            589,
+            445,
+            73
+          ],
+          "description": "竞选宣言标题装饰：中部红色横向标题牌、白金色艺术字，左右红色月桂枝装饰",
+          "target": [
+            352,
+            589,
+            445,
+            73
+          ],
+          "presentation": "cutout",
+          "lettering": "竞选宣言"
+        },
+        {
+          "id": "o010",
+          "kind": "art",
+          "order": 9,
+          "box": [
+            1252,
+            589,
+            438,
+            73
+          ],
+          "description": "我的荣誉标题装饰：中部红色横向标题牌、白金色艺术字，左右红色月桂枝装饰",
+          "target": [
+            1252,
+            589,
+            438,
+            73
+          ],
+          "presentation": "cutout",
+          "lettering": "我的荣誉"
+        },
+        {
+          "id": "o011",
+          "kind": "art",
+          "order": 10,
+          "box": [
+            583,
+            289,
+            75,
+            273
+          ],
+          "description": "竖排四枚红色圆形档案图标，依次为白色人物头像、盾牌星徽、五角星、爱心符号",
+          "target": [
+            583,
+            289,
+            75,
+            273
+          ],
+          "presentation": "cutout"
+        },
+        {
+          "id": "o012",
+          "kind": "art",
+          "order": 11,
+          "box": [
+            1203,
+            304,
+            600,
+            126
+          ],
+          "description": "四枚浅金色同心圆优势图标横排，红色线性图案依次为奔跑、多人协作、爱心、点赞",
+          "target": [
+            1203,
+            304,
+            600,
+            126
+          ],
+          "presentation": "cutout"
+        },
+        {
+          "id": "o013",
+          "kind": "art",
+          "order": 12,
+          "box": [
+            1200,
+            505,
+            610,
+            65
+          ],
+          "description": "红色手写书法横向标语并带两条红色手绘下划线",
+          "target": [
+            1200,
+            505,
+            610,
+            65
+          ],
+          "presentation": "cutout",
+          "lettering": "用行动传递温暖 用责任点亮校园"
+        },
+        {
+          "id": "o014",
+          "kind": "art",
+          "order": 13,
+          "box": [
+            1118,
+            665,
+            714,
+            278
+          ],
+          "description": "六个浅金色荣誉占位卡片组成的2行3列表格，每格有细金色边框、角花、月桂与奖杯图案",
+          "target": [
+            1118,
+            665,
+            714,
+            278
+          ],
+          "presentation": "rectangle"
+        },
+        {
+          "id": "o015",
+          "kind": "art",
+          "order": 14,
+          "box": [
+            1638,
+            974,
+            225,
+            62
+          ],
+          "description": "右下角白色手写书法短句与一条细白色下划线，笔触自然",
+          "target": [
+            1638,
+            974,
+            225,
+            62
+          ],
+          "presentation": "cutout",
+          "lettering": "少年有梦 未来可期"
+        }
+      ],
+      "primary": "o005",
+      "ordinary_board_count": 3,
+      "generation_tasks": 6,
+      "members": [
+        [
+          "o006",
+          "o009",
+          "o010",
+          "o012"
+        ],
+        [
+          "o007",
+          "o008",
+          "o011",
+          "o015"
+        ],
+        [
+          "o013",
+          "o014"
+        ]
+      ],
+      "sizes": [
+        [
+          1024,
+          1024
+        ],
+        [
+          1024,
+          1024
+        ],
+        [
+          1024,
+          1024
+        ]
+      ],
+      "pixel_budget": [
+        {
+          "all_members_meet_requirement": true
+        },
+        {
+          "all_members_meet_requirement": true
+        },
+        {
+          "all_members_meet_requirement": true
+        }
+      ]
+    },
+    "round-b": {
+      "source_sha256": "94fcf53c3ca832143bd0b313d2653f563faf2136300336df36f9f9553c554895",
+      "items": [
+        {
+          "id": "o001",
+          "kind": "art",
+          "order": 0,
+          "z": 8,
+          "box": [
+            62,
+            30,
+            1320,
+            145
+          ],
+          "description": "整行主标题的中国毛笔艺术字，黑褐、朱红与深蓝分色，保留原图笔锋、飞白和字形，不要底纸或背景块",
+          "target": [
+            62,
+            30,
+            1320,
+            145
+          ],
+          "presentation": "cutout",
+          "lettering": "探物知变，中秋风物时代探究"
+        },
+        {
+          "id": "o003",
+          "kind": "art",
+          "order": 2,
+          "z": 6,
+          "box": [
+            155,
+            269,
+            240,
+            72
+          ],
+          "description": "棕褐色不规则毛刷笔触标签，白色毛笔字，保持粗糙刷边与原图比例",
+          "target": [
+            155,
+            269,
+            240,
+            72
+          ],
+          "presentation": "cutout",
+          "lettering": "过去"
+        },
+        {
+          "id": "o009",
+          "kind": "art",
+          "order": 8,
+          "z": 6,
+          "box": [
+            950,
+            270,
+            225,
+            70
+          ],
+          "description": "深蓝色不规则毛刷笔触标签，白色毛笔字，保持原图刷边和留白",
+          "target": [
+            950,
+            270,
+            225,
+            70
+          ],
+          "presentation": "cutout",
+          "lettering": "现在"
+        },
+        {
+          "id": "o014",
+          "kind": "art",
+          "order": 13,
+          "z": 1,
+          "box": [
+            1445,
+            297,
+            465,
+            525
+          ],
+          "description": "右侧独立浅米色宣纸信息卡背景，轻微透视与撕边质感，带原图橙色角部烟花/花纹装饰；只要空白卡片，不含任何标题文字、正文、圆形图标或刷笔标签",
+          "target": [
+            1445,
+            297,
+            465,
+            525
+          ],
+          "presentation": "rectangle"
+        },
+        {
+          "id": "o015",
+          "kind": "art",
+          "order": 14,
+          "z": 6,
+          "box": [
+            1472,
+            327,
+            345,
+            64
+          ],
+          "description": "棕褐色横向不规则毛刷笔触标签，白色标题字，保持原图笔刷边缘",
+          "target": [
+            1472,
+            327,
+            345,
+            64
+          ],
+          "presentation": "cutout",
+          "lettering": "相关现代技术"
+        },
+        {
+          "id": "o016",
+          "kind": "art",
+          "order": 15,
+          "z": 6,
+          "box": [
+            1488,
+            421,
+            130,
+            130
+          ],
+          "description": "浅蓝色圆形徽章，中心为深蓝色雪花/冷链图标，简洁扁平图标，保持原图形状",
+          "target": [
+            1488,
+            421,
+            130,
+            130
+          ],
+          "presentation": "cutout"
+        },
+        {
+          "id": "o021",
+          "kind": "art",
+          "order": 20,
+          "z": 6,
+          "box": [
+            1488,
+            600,
+            130,
+            130
+          ],
+          "description": "浅金黄色圆形徽章，中心为深蓝色物流货车图标，简洁扁平图标，保持原图形状",
+          "target": [
+            1488,
+            600,
+            130,
+            130
+          ],
+          "presentation": "cutout"
+        },
+        {
+          "id": "o026",
+          "kind": "art",
+          "order": 25,
+          "z": 1,
+          "box": [
+            46,
+            767,
+            1600,
+            250
+          ],
+          "description": "底部独立横向浅米色撕边宣纸长卡片背景，保留纸张纤维、阴影和不规则毛边；只要空白纸张，不含竖向标签、兔子插画或正文文字",
+          "target": [
+            46,
+            767,
+            1600,
+            250
+          ],
+          "presentation": "rectangle"
+        },
+        {
+          "id": "o027",
+          "kind": "art",
+          "order": 26,
+          "z": 6,
+          "box": [
+            83,
+            759,
+            112,
+            247
+          ],
+          "description": "左下竖向朱红色粗糙刷笔标签，白色竖排毛笔字，保留刷边与纸纹",
+          "target": [
+            83,
+            759,
+            112,
+            247
+          ],
+          "presentation": "cutout",
+          "lettering": "我的思考"
+        },
+        {
+          "id": "o028",
+          "kind": "art",
+          "order": 27,
+          "z": 6,
+          "box": [
+            188,
+            902,
+            78,
+            112
+          ],
+          "description": "浅棕色剪影风玉兔小插画，坐姿、长耳朵、简洁柔和纸艺质感",
+          "target": [
+            188,
+            902,
+            78,
+            112
+          ],
+          "presentation": "cutout"
+        }
+      ],
+      "primary": "o001",
+      "ordinary_board_count": 3,
+      "generation_tasks": 6,
+      "members": [
+        [
+          "o003",
+          "o009",
+          "o015",
+          "o028"
+        ],
+        [
+          "o014",
+          "o027"
+        ],
+        [
+          "o016",
+          "o021",
+          "o026"
+        ]
+      ],
+      "sizes": [
+        [
+          1024,
+          1024
+        ],
+        [
+          1536,
+          1024
+        ],
+        [
+          1536,
+          1024
+        ]
+      ],
+      "pixel_budget": [
+        {
+          "all_members_meet_requirement": true
+        },
+        {
+          "all_members_meet_requirement": true
+        },
+        {
+          "all_members_meet_requirement": false
+        }
+      ]
+    }
+  }
+}

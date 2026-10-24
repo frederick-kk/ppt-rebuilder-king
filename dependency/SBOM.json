@@ -1,0 +1,458 @@
+{
+  "schema": "ppt-rebuilder.dependency-sbom/1",
+  "format_note": "Project-specific machine-readable dependency inventory; not asserted to be an SPDX or CycloneDX conformance document.",
+  "release_id": "PPT Rebuilder King-20261024-beta1",
+  "prepared_date": "2026-10-24",
+  "first_party": {
+    "license": "MIT",
+    "notice_file": "LICENSE",
+    "original_runtime_notice_preserved": true,
+    "authorization_scope": "User confirmed the existing attribution and MIT licensing of added first-party contents; no new attribution is invented."
+  },
+  "distribution_policy": {
+    "source_archive": "node_modules excluded; source/lockfile and third-party notice copies included",
+    "runtime_archive": "17 npm package directories included; metadata-only node_modules/https directory omitted by explicit release whitelist",
+    "upstream_lockfile_unchanged": true,
+    "runtime_source_code_unchanged_by_this_license_work": true,
+    "node_executable_bundled": false,
+    "python_distributions_bundled": false,
+    "policy_status": "Release build policy; final archive content must be verified by packager.",
+    "runtime_file_allowlist": "runtime-files.json pins 393 approved dependency files by path, size and SHA256 and binds package-lock.json; installer wrappers and upstream development extras are not distributed."
+  },
+  "components": [
+    {
+      "name": "@types/node",
+      "version": "22.20.5",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/@types-node-22.20.5-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/@types%2fnode/22.20.5",
+        "registry_metadata_sha256": "2f6574e6373feae60dcc61a2bc7250860164091ad0ba36a940aec3e0ff979b50",
+        "tarball_url": "https://registry.npmjs.org/@types/node/-/node-22.20.5.tgz",
+        "tarball_sha256": "1d382e6ea27221dcf02fc1cada5c5d396c4ca499552201323ca43713baa60012",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "core-util-is",
+      "version": "1.0.3",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/core-util-is-1.0.3-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/core-util-is/1.0.3",
+        "registry_metadata_sha256": "1966e45a3ccc8d45f764286776ae9b0fe059b918f8fcce2b681e6feb36ad7fea",
+        "tarball_url": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.3.tgz",
+        "tarball_sha256": "4430fdc71f2cf3b5e297113b9a692da2d6cff96cf84da00f0ecef5e5a6e74d0c",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "https",
+      "version": "1.0.0",
+      "ecosystem": "npm",
+      "declared_license": "ISC",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": false,
+      "license_documents": [],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/https/1.0.0",
+        "registry_metadata_sha256": "af76de10e2bcbb6542b18f2ad64ba696c2bf874aa36cd2daa290e55a1bb86a0b",
+        "tarball_url": "https://registry.npmjs.org/https/-/https-1.0.0.tgz",
+        "tarball_sha256": "7d6cc44a6471377a9299371e4d207cd2607bbaf7bcca1b220c8bd6831fbbe645",
+        "registry_sha512_integrity_matches": true
+      },
+      "distribution_resolution": "Omit the metadata-only npm directory from the runtime release whitelist. Preserve the upstream lockfile declaration; use the Node built-in module.",
+      "upstream_license_text_available": false,
+      "upstream_tarball_file_count": 1,
+      "upstream_tarball_only_file": "package/package.json",
+      "upstream_tarball_only_file_bytes": 331,
+      "unresolved_fact": "Upstream supplies only an ISC identifier; no complete text or verified copyright line is available. No copyright statement has been fabricated.",
+      "code_evidence": [
+        {
+          "path": "compat-runtime/node_modules/pptxgenjs/dist/pptxgen.cjs.js",
+          "line": 4845,
+          "expression": "import('node:https')"
+        },
+        {
+          "path": "compat-runtime/node_modules/pptxgenjs/dist/pptxgen.es.js",
+          "line": 4843,
+          "expression": "import('node:https')"
+        }
+      ]
+    },
+    {
+      "name": "image-size",
+      "version": "2.0.4",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/image-size-2.0.4-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/image-size/2.0.4",
+        "registry_metadata_sha256": "3aabbc32b8ed8fa79b4cb59d88ab70e3d3b875c37b0dd44ad4562c5a234333ab",
+        "tarball_url": "https://registry.npmjs.org/image-size/-/image-size-2.0.4.tgz",
+        "tarball_sha256": "7562a60f2316539588bd49f35213cf3e2b74229dc50ee8532b42c9adf157390a",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "immediate",
+      "version": "3.0.6",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/immediate-3.0.6-LICENSE.txt"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/immediate/3.0.6",
+        "registry_metadata_sha256": "ad2be7b2c0ef325ae853c5ca4216349efcd694606a3b31ada737bc00b3719882",
+        "tarball_url": "https://registry.npmjs.org/immediate/-/immediate-3.0.6.tgz",
+        "tarball_sha256": "98c792f39650b00818c05dcc407902034dc4092f368596b37658d44f28739d11",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "inherits",
+      "version": "2.0.4",
+      "ecosystem": "npm",
+      "declared_license": "ISC",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/inherits-2.0.4-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/inherits/2.0.4",
+        "registry_metadata_sha256": "bdffe5eeab2fd4263d28eda6112c2ac4bdb3908d93fad298d5f7b66548e932e7",
+        "tarball_url": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz",
+        "tarball_sha256": "d94dbc6c1bb3c5ac0fb12a73ade187108fc60de273a1b754f55044eb5e24afaf",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "isarray",
+      "version": "1.0.0",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/isarray-1.0.0-README.md"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/isarray/1.0.0",
+        "registry_metadata_sha256": "566bbad706db3711a1be1a2822bd37b200fd273fc118305430f019100e521a15",
+        "tarball_url": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
+        "tarball_sha256": "e23c76f14f5222e07e39d89858b61e8e33f96956de9e0df3659cbdf8db950c87",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "jszip",
+      "version": "3.10.1",
+      "ecosystem": "npm",
+      "declared_license": "(MIT OR GPL-3.0-or-later)",
+      "direct_dependency": true,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/jszip-3.10.1-LICENSE.markdown"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/jszip/3.10.1",
+        "registry_metadata_sha256": "1d8e97602ee9f4fc4c0c792040dfc421f3017ee2d94c13126a697f48ed178092",
+        "tarball_url": "https://registry.npmjs.org/jszip/-/jszip-3.10.1.tgz",
+        "tarball_sha256": "5117f4a2a645aeb307bf3b829c575ad58135cc97e75291e594532ab5b5b21b23",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "lie",
+      "version": "3.3.0",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/lie-3.3.0-license.md"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/lie/3.3.0",
+        "registry_metadata_sha256": "d7ffc81030a63fb81529a92113f012b6412c65410d3d426703a2b92e62e812dd",
+        "tarball_url": "https://registry.npmjs.org/lie/-/lie-3.3.0.tgz",
+        "tarball_sha256": "2db8461cd4a10e2fc3588c8c55da34d33465ff81cc19c72416bbcaec7ee6a36e",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "pako",
+      "version": "1.0.11",
+      "ecosystem": "npm",
+      "declared_license": "(MIT AND Zlib)",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/pako-1.0.11-LICENSE",
+        "LICENSES/node/pako-1.0.11-Zlib-NOTICE.txt"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/pako/1.0.11",
+        "registry_metadata_sha256": "0c380eb3d27a5a93fc5af301c13b9ff4f3e42085aadd2a5141c0bc9ddc30faad",
+        "tarball_url": "https://registry.npmjs.org/pako/-/pako-1.0.11.tgz",
+        "tarball_sha256": "0d4028dc0352a740c30cbfd772917f2744986d42bfa0b06ec7642bffe7ad3941",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "pptxgenjs",
+      "version": "4.0.1",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": true,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/pptxgenjs-4.0.1-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/pptxgenjs/4.0.1",
+        "registry_metadata_sha256": "2a2376a0fde708533fd34e0c0a0658f4f77c37eb253e608027d5af7dd1fc716d",
+        "tarball_url": "https://registry.npmjs.org/pptxgenjs/-/pptxgenjs-4.0.1.tgz",
+        "tarball_sha256": "305e8870cc03c4402efb99d4a62cb73f611af64998b8988915d6c65b7fe7a5f0",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "process-nextick-args",
+      "version": "2.0.1",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/process-nextick-args-2.0.1-license.md"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/process-nextick-args/2.0.1",
+        "registry_metadata_sha256": "a87b44a1e710af97cb07a80e882006476fa7ec41df9450945d32de97d756dadb",
+        "tarball_url": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-2.0.1.tgz",
+        "tarball_sha256": "425bf8c725d23bc5ac76bcedd10d9cdbbd6354c7273dd7def44417cfbca8889b",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "readable-stream",
+      "version": "2.3.8",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/readable-stream-2.3.8-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/readable-stream/2.3.8",
+        "registry_metadata_sha256": "56afc83bacc89eb502015da846934623c1449f7e87150d8e405bef9c76544200",
+        "tarball_url": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.8.tgz",
+        "tarball_sha256": "1648613948f68ac9cbbe8f72a3f93a67ecdb862ffb57946a2c0bbb5a1479a532",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "safe-buffer",
+      "version": "5.1.2",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/safe-buffer-5.1.2-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/safe-buffer/5.1.2",
+        "registry_metadata_sha256": "6f14e08321df74dcaa744951d09646dc412e96b9e6cc73f815f613d604e2c3ce",
+        "tarball_url": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
+        "tarball_sha256": "e09206c60fccafb952c854af7629cbb031a98d6da2e143fb3aa3c8a48402aa22",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "setimmediate",
+      "version": "1.0.5",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/setimmediate-1.0.5-LICENSE.txt"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/setimmediate/1.0.5",
+        "registry_metadata_sha256": "06baf3c151a0e01229401d2a01854857185bd025bc40568131d9687464e2c1aa",
+        "tarball_url": "https://registry.npmjs.org/setimmediate/-/setimmediate-1.0.5.tgz",
+        "tarball_sha256": "5cb9fc22698364ed42c02d6aa3dc50ffeafa68452ae84699672e3dfd74922c9e",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "string_decoder",
+      "version": "1.1.1",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/string_decoder-1.1.1-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/string_decoder/1.1.1",
+        "registry_metadata_sha256": "04fbc90652ce27c0651aeb0fd119f8d57a7a68c331927d1a8ca49cd531bec35d",
+        "tarball_url": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.1.1.tgz",
+        "tarball_sha256": "af8262434508fa8292407f7fef4690d19eabb73387ca230b41f2a1155216963a",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "undici-types",
+      "version": "6.21.0",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/undici-types-6.21.0-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/undici-types/6.21.0",
+        "registry_metadata_sha256": "ebd87c06098963a227578f0cc428f4cdcc2d6791ae8f394331b53598c5899766",
+        "tarball_url": "https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz",
+        "tarball_sha256": "cfa1a9a5e18988850e548f4f6b629c58da32dc32bebb116e58ea301e516fd16d",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    },
+    {
+      "name": "util-deprecate",
+      "version": "1.0.2",
+      "ecosystem": "npm",
+      "declared_license": "MIT",
+      "direct_dependency": false,
+      "declared_in_package_lock": true,
+      "source_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
+      "license_documents": [
+        "LICENSES/node/util-deprecate-1.0.2-LICENSE"
+      ],
+      "primary_source": {
+        "registry_url": "https://registry.npmjs.org/util-deprecate/1.0.2",
+        "registry_metadata_sha256": "57497c3463ac8194ba5ffbaee85d4b91cd2c931b9f43228347eb11f8744efd38",
+        "tarball_url": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+        "tarball_sha256": "79a1de983c1b393180c47456d6b73caab278a00ea6e37d5c6675f2dcdec2a3e5",
+        "registry_sha512_integrity_matches": true
+      },
+      "upstream_license_text_available": true
+    }
+  ],
+  "external_requirements": [
+    {
+      "name": "Pillow",
+      "version_requirement": ">=10",
+      "bundled": false,
+      "license_reference": "https://pillow.readthedocs.io/en/stable/about.html#license",
+      "license_note": "Official current documentation identifies MIT-CMU; actual installed version and its bundled native dependencies retain their own notices."
+    },
+    {
+      "name": "NumPy",
+      "version_requirement": ">=1.24",
+      "bundled": false,
+      "license_reference": "https://numpy.org/doc/stable/license.html",
+      "license_note": "Refer to the actual installed distribution; its native dependencies are not audited or redistributed by this release."
+    },
+    {
+      "name": "Node.js",
+      "version_requirement": "See supported environment in release README",
+      "bundled": false,
+      "license_reference": "https://github.com/nodejs/node/blob/main/LICENSE"
+    }
+  ],
+  "https_resolution_evidence": {
+    "tested_node_version": "v22.21.0",
+    "require_resolve_https": "https",
+    "module_isBuiltin_https": true,
+    "module_isBuiltin_node_https": true,
+    "primary_reference": "https://nodejs.org/api/modules.html#built-in-modules",
+    "scope": "Local module resolution and inspected PptxGenJS source only; no image/download request or legal conclusion."
+  },
+  "verification": {
+    "official_npm_version_tarballs_checked": 18,
+    "registry_sha512_matches": 18,
+    "distributed_npm_packages_with_original_notices": 17,
+    "original_notice_copy_files": 18,
+    "license_source_index": "LICENSES/SOURCE_INDEX.json",
+    "source_archive_sha256": "17b3202f2a7aeb6a75d3f6a39c909d0f94076347e7c4dff859752c8a590be343",
+    "upstream_https_full_license_text_available": false,
+    "copyright_lines_invented": false
+  }
+}

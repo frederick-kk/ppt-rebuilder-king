@@ -1,0 +1,48 @@
+{
+  "format": "ppt-rebuilder.test-source-snapshot/1",
+  "source_archive": "PPT Rebuilder King ChatGPT-20261022-25-50-5网格测试版.zip",
+  "source_archive_sha256": "e2817819898137ab9c9f3b9c422dbe62df12a17aa6f575404a8f0f4617bda6a2",
+  "source_package_id": "PPT Rebuilder King-20261022-grid25-test",
+  "scope": "Unmodified minimal source snapshot for engineering regression tests only; not production, user artwork, or a generated output.",
+  "license_file": "LICENSE",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 FrederikKK / frederick-kk",
+  "files": [
+    {
+      "path": "newpath/__init__.py",
+      "source_member": "PPT Rebuilder King-20261022-grid25-test/compat-runtime/newpath/__init__.py",
+      "size": 79,
+      "sha256": "c449df566f2d297bab99e5992078a8d76c003b74eaa4ec83c9f74e5c76f7d0ae"
+    },
+    {
+      "path": "newpath/source.py",
+      "source_member": "PPT Rebuilder King-20261022-grid25-test/compat-runtime/newpath/source.py",
+      "size": 3160,
+      "sha256": "644b2ad815e03f7e48eaeed3f86bbf800aad208d4e65d45a00d59a08940dcd3f"
+    },
+    {
+      "path": "newpath/ruler.py",
+      "source_member": "PPT Rebuilder King-20261022-grid25-test/compat-runtime/newpath/ruler.py",
+      "size": 4382,
+      "sha256": "ea04b0390217388dca40526ac4b49308412a6b40296e2188bd31d4644622b014"
+    },
+    {
+      "path": "newpath/storage.py",
+      "source_member": "PPT Rebuilder King-20261022-grid25-test/compat-runtime/newpath/storage.py",
+      "size": 2709,
+      "sha256": "a0888be46be698bb18c2552db8403ed8d53fb16582545feef15bd700b13e4281"
+    },
+    {
+      "path": "newpath/prompts.py",
+      "source_member": "PPT Rebuilder King-20261022-grid25-test/compat-runtime/newpath/prompts.py",
+      "size": 9522,
+      "sha256": "143dd63ecb3d4b847b8f01acec88652a5a42e12aec73045e9c3eb88100f311fb"
+    },
+    {
+      "path": "LICENSE",
+      "source_member": "PPT Rebuilder King-20261022-grid25-test/compat-runtime/LICENSE",
+      "size": 1082,
+      "sha256": "2b68c782c570f037514d41c27112ee3014d6d58191e229b99f5aac54b2f878c0"
+    }
+  ]
+}

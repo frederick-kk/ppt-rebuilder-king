@@ -1,3 +1,7 @@
-# Keep tested source bytes stable across Windows and Linux checkouts.
+# Preserve verified runtime and fixture bytes across checkouts.
 * -text
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pptx binary
 *.zip binary

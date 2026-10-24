@@ -1,13 +1,19 @@
 __pycache__/
-*.pyc
-.dev/
-jobs/
+*.py[cod]
+compat-runtime/node_modules/
 dist/
-node_modules/
-.venv/
+.build/
 .env
 .env.*
-!.env.example
+*.local.json
+compat-runtime/MANIFEST.json
+
+# Local jobs, diagnostics and credentials never belong in this repository.
+_work/
+private-archive/
+verification/
+baseline-record/
+image_config.json
 *.pem
 *.key
 *.p12

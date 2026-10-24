@@ -1,0 +1,23 @@
+{
+  "schema": "ppt-rebuilder.release/1",
+  "version": "2026.10.24-beta.1",
+  "release_date": "2026-10-24",
+  "package_id": "PPT Rebuilder King-20261024-beta1",
+  "archive_name": "PPT Rebuilder King ChatGPT-20261024-Beta1.zip",
+  "source_archive_name": "PPT Rebuilder King-20261024-Beta1-source.zip",
+  "source_date_epoch": 1792800000,
+  "baseline_archive_sha256": "17b3202f2a7aeb6a75d3f6a39c909d0f94076347e7c4dff859752c8a590be343",
+  "status": "beta",
+  "working_pixels": [
+    1920,
+    1080
+  ],
+  "ruler_parameters": [
+    25,
+    50,
+    5
+  ],
+  "external_image_calls_in_release_verification": 0,
+  "source_license": "MIT",
+  "copyright": "Copyright (c) 2026 FrederikKK / frederick-kk"
+}

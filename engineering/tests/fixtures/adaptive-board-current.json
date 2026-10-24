@@ -1,0 +1,1233 @@
+{
+  "origin": "current diagnostic recovered layout; source of layout is explicitly recovered, source images are not included",
+  "archive": "title_squash_diagnostic.zip",
+  "raw_layout": {
+    "items": [
+      {
+        "kind": "art",
+        "box": [
+          65,
+          28,
+          1325,
+          145
+        ],
+        "z": 20,
+        "description": "横排主标题毛笔艺术字；“探物知变，”为深黑褐色，“中秋风物”为朱红棕色，“时代探究”为深藏青黑色。手写行草/楷意混合，粗细强烈、长撇捺和尖锋明显，局部有自然飞白与墨色浓淡；文字直接落在浅米纸纹背景上，原图未见独立外加白描边或贴纸边，保持自然笔缘与横向一体排版。",
+        "lettering": "探物知变，中秋风物时代探究",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "text",
+        "box": [
+          205,
+          190,
+          930,
+          42
+        ],
+        "z": 20,
+        "text": "—— 以“月饼的运输”为例，看科技如何改变中秋的团圆",
+        "size": 28,
+        "color": "1E2D38",
+        "align": "left"
+      },
+      {
+        "kind": "art",
+        "box": [
+          160,
+          265,
+          225,
+          82
+        ],
+        "z": 12,
+        "description": "棕褐色横向毛笔刷痕标签，边缘参差、带干刷飞白与纸纹感；中央为白色手写毛笔字，保留原生白字与刷痕底牌的一体关系。",
+        "lettering": "过去",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "text",
+        "box": [
+          168,
+          356,
+          325,
+          36
+        ],
+        "z": 20,
+        "text": "路途遥远，运输艰难",
+        "size": 28,
+        "color": "8E321D",
+        "bold": true
+      },
+      {
+        "kind": "text",
+        "box": [
+          200,
+          409,
+          360,
+          33
+        ],
+        "z": 20,
+        "text": "过去交通条件有限，",
+        "size": 23,
+        "color": "262626"
+      },
+      {
+        "kind": "text",
+        "box": [
+          200,
+          442,
+          405,
+          33
+        ],
+        "z": 20,
+        "text": "许多物资只能依靠人力肩挑背负，",
+        "size": 23,
+        "color": "262626"
+      },
+      {
+        "kind": "text",
+        "box": [
+          200,
+          475,
+          360,
+          33
+        ],
+        "z": 20,
+        "text": "翻山越岭、跋涉千里，",
+        "size": 23,
+        "color": "262626"
+      },
+      {
+        "kind": "text",
+        "box": [
+          200,
+          508,
+          300,
+          33
+        ],
+        "z": 20,
+        "text": "保存也很不易。",
+        "size": 23,
+        "color": "262626"
+      },
+      {
+        "kind": "art",
+        "box": [
+          950,
+          266,
+          200,
+          85
+        ],
+        "z": 12,
+        "description": "深蓝灰色横向毛笔刷痕标签，边缘有干刷破墨和不规则飞白；中央为白色手写毛笔字，白字与刷痕底牌保持一体。",
+        "lettering": "现在",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "text",
+        "box": [
+          985,
+          365,
+          360,
+          38
+        ],
+        "z": 20,
+        "text": "冷链护航，快速送达",
+        "size": 29,
+        "color": "0F4568",
+        "bold": true
+      },
+      {
+        "kind": "text",
+        "box": [
+          1000,
+          421,
+          360,
+          33
+        ],
+        "z": 20,
+        "text": "依托冷链物流与智能配送，",
+        "size": 23,
+        "color": "26343F"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1000,
+          454,
+          330,
+          33
+        ],
+        "z": 20,
+        "text": "一盒月饼可以跨越千里，",
+        "size": 23,
+        "color": "26343F"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1000,
+          487,
+          365,
+          33
+        ],
+        "z": 20,
+        "text": "在中秋时准时送到家人手中。",
+        "size": 23,
+        "color": "26343F"
+      },
+      {
+        "kind": "art",
+        "box": [
+          1456,
+          295,
+          448,
+          520
+        ],
+        "z": 6,
+        "description": "右侧独立米白色复古纸张技术卡片底板，矩形略带透视感，四边为不规则撕纸/磨损边缘并有浅棕描线，纸面有细腻纤维与旧纸纹；右上和右下带浅金橙色放射花纹/烟花式装饰，底板本身不含文字和两个圆形技术图标。",
+        "presentation": "rectangle"
+      },
+      {
+        "kind": "art",
+        "box": [
+          1488,
+          329,
+          340,
+          60
+        ],
+        "z": 12,
+        "description": "暖棕色横向毛笔刷痕标签，中央白色书写体，刷痕边缘粗粝、带纸纹和轻微飞白；保留原生白字，无额外贴纸边。",
+        "lettering": "相关现代技术",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "art",
+        "box": [
+          1487,
+          424,
+          115,
+          115
+        ],
+        "z": 12,
+        "description": "浅蓝圆形底上的深蓝雪花图标，线条粗实简洁，圆形底色柔和、边缘干净，无文字。",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          427,
+          250,
+          38
+        ],
+        "z": 20,
+        "text": "冷链物流技术",
+        "size": 27,
+        "color": "163D59",
+        "bold": true
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          478,
+          245,
+          31
+        ],
+        "z": 20,
+        "text": "通过低温运输与仓储，",
+        "size": 22,
+        "color": "283039"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          511,
+          220,
+          31
+        ],
+        "z": 20,
+        "text": "延长月饼保质期，",
+        "size": 22,
+        "color": "283039"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          544,
+          215,
+          31
+        ],
+        "z": 20,
+        "text": "保持新鲜与口感。",
+        "size": 22,
+        "color": "283039"
+      },
+      {
+        "kind": "art",
+        "box": [
+          1490,
+          607,
+          112,
+          112
+        ],
+        "z": 12,
+        "description": "浅暖黄色圆形底上的深蓝灰货车图标，简化几何轮廓、粗实线条，车轮为圆形，无文字。",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          615,
+          250,
+          38
+        ],
+        "z": 20,
+        "text": "智能物流技术",
+        "size": 27,
+        "color": "163D59",
+        "bold": true
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          666,
+          250,
+          31
+        ],
+        "z": 20,
+        "text": "自动分拣、路线规划，",
+        "size": 22,
+        "color": "283039"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          699,
+          250,
+          31
+        ],
+        "z": 20,
+        "text": "实时追踪，让月饼可以",
+        "size": 22,
+        "color": "283039"
+      },
+      {
+        "kind": "text",
+        "box": [
+          1625,
+          732,
+          270,
+          31
+        ],
+        "z": 20,
+        "text": "快速、稳定地送达全国各地。",
+        "size": 22,
+        "color": "283039"
+      },
+      {
+        "kind": "art",
+        "box": [
+          63,
+          758,
+          1580,
+          270
+        ],
+        "z": 5,
+        "description": "底部横向大幅米白复古纸张/卷轴式说明底板，四边不规则撕纸与卷边，浅棕描线和纸纤维纹理明显，左侧有局部叠纸层；底板本身不含文字、红色竖标签和小兔。",
+        "presentation": "rectangle"
+      },
+      {
+        "kind": "art",
+        "box": [
+          90,
+          760,
+          92,
+          238
+        ],
+        "z": 12,
+        "description": "竖向朱红棕色毛笔刷痕标签，边缘粗粝、带干刷飞白和纸纹；白色手写毛笔字从上到下竖排，原生白字无额外描边。",
+        "lettering": "我的思考",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "art",
+        "box": [
+          177,
+          872,
+          80,
+          135
+        ],
+        "z": 12,
+        "description": "小型暖棕色剪纸/插画风玉兔，侧身坐姿，长耳、短尾，轮廓柔和，带轻微纸张质感与简化阴影，无文字。",
+        "presentation": "cutout"
+      },
+      {
+        "kind": "text",
+        "box": [
+          300,
+          874,
+          1320,
+          35
+        ],
+        "z": 20,
+        "text": "我选择“月饼的运输”作为观察对象。过去受交通和保存条件限制，许多物资只能靠人力肩挑背负，",
+        "size": 22,
+        "color": "2A2C2F"
+      },
+      {
+        "kind": "text",
+        "box": [
+          300,
+          916,
+          1325,
+          35
+        ],
+        "z": 20,
+        "size": 22,
+        "color": "2A2C2F",
+        "runs": [
+          {
+            "text": "让我联想到"
+          },
+          {
+            "text": "长征时期物资运输的艰辛",
+            "color": "B74222",
+            "bold": true
+          },
+          {
+            "text": "。如今，冷链物流与智能配送让一盒月饼可以跨越千里，准时送到家人手中。"
+          }
+        ]
+      },
+      {
+        "kind": "text",
+        "box": [
+          300,
+          958,
+          1200,
+          35
+        ],
+        "z": 20,
+        "text": "科技不仅改变了运输的速度和方式，也让我们更加珍惜今天来之不易的团圆与便利。",
+        "size": 22,
+        "color": "2A2C2F"
+      }
+    ]
+  },
+  "arts": [
+    {
+      "id": "o003",
+      "kind": "art",
+      "order": 2,
+      "z": 12,
+      "box": [
+        160,
+        265,
+        225,
+        82
+      ],
+      "description": "棕褐色横向毛笔刷痕标签，边缘参差、带干刷飞白与纸纹感；中央为白色手写毛笔字，保留原生白字与刷痕底牌的一体关系。",
+      "target": [
+        160,
+        265,
+        225,
+        82
+      ],
+      "presentation": "cutout",
+      "lettering": "过去"
+    },
+    {
+      "id": "o009",
+      "kind": "art",
+      "order": 8,
+      "z": 12,
+      "box": [
+        950,
+        266,
+        200,
+        85
+      ],
+      "description": "深蓝灰色横向毛笔刷痕标签，边缘有干刷破墨和不规则飞白；中央为白色手写毛笔字，白字与刷痕底牌保持一体。",
+      "target": [
+        950,
+        266,
+        200,
+        85
+      ],
+      "presentation": "cutout",
+      "lettering": "现在"
+    },
+    {
+      "id": "o014",
+      "kind": "art",
+      "order": 13,
+      "z": 6,
+      "box": [
+        1456,
+        295,
+        448,
+        520
+      ],
+      "description": "右侧独立米白色复古纸张技术卡片底板，矩形略带透视感，四边为不规则撕纸/磨损边缘并有浅棕描线，纸面有细腻纤维与旧纸纹；右上和右下带浅金橙色放射花纹/烟花式装饰，底板本身不含文字和两个圆形技术图标。",
+      "target": [
+        1456,
+        295,
+        448,
+        520
+      ],
+      "presentation": "rectangle"
+    },
+    {
+      "id": "o015",
+      "kind": "art",
+      "order": 14,
+      "z": 12,
+      "box": [
+        1488,
+        329,
+        340,
+        60
+      ],
+      "description": "暖棕色横向毛笔刷痕标签，中央白色书写体，刷痕边缘粗粝、带纸纹和轻微飞白；保留原生白字，无额外贴纸边。",
+      "target": [
+        1488,
+        329,
+        340,
+        60
+      ],
+      "presentation": "cutout",
+      "lettering": "相关现代技术"
+    },
+    {
+      "id": "o016",
+      "kind": "art",
+      "order": 15,
+      "z": 12,
+      "box": [
+        1487,
+        424,
+        115,
+        115
+      ],
+      "description": "浅蓝圆形底上的深蓝雪花图标，线条粗实简洁，圆形底色柔和、边缘干净，无文字。",
+      "target": [
+        1487,
+        424,
+        115,
+        115
+      ],
+      "presentation": "cutout"
+    },
+    {
+      "id": "o021",
+      "kind": "art",
+      "order": 20,
+      "z": 12,
+      "box": [
+        1490,
+        607,
+        112,
+        112
+      ],
+      "description": "浅暖黄色圆形底上的深蓝灰货车图标，简化几何轮廓、粗实线条，车轮为圆形，无文字。",
+      "target": [
+        1490,
+        607,
+        112,
+        112
+      ],
+      "presentation": "cutout"
+    },
+    {
+      "id": "o026",
+      "kind": "art",
+      "order": 25,
+      "z": 5,
+      "box": [
+        63,
+        758,
+        1580,
+        270
+      ],
+      "description": "底部横向大幅米白复古纸张/卷轴式说明底板，四边不规则撕纸与卷边，浅棕描线和纸纤维纹理明显，左侧有局部叠纸层；底板本身不含文字、红色竖标签和小兔。",
+      "target": [
+        63,
+        758,
+        1580,
+        270
+      ],
+      "presentation": "rectangle"
+    },
+    {
+      "id": "o027",
+      "kind": "art",
+      "order": 26,
+      "z": 12,
+      "box": [
+        90,
+        760,
+        92,
+        238
+      ],
+      "description": "竖向朱红棕色毛笔刷痕标签，边缘粗粝、带干刷飞白和纸纹；白色手写毛笔字从上到下竖排，原生白字无额外描边。",
+      "target": [
+        90,
+        760,
+        92,
+        238
+      ],
+      "presentation": "cutout",
+      "lettering": "我的思考"
+    },
+    {
+      "id": "o028",
+      "kind": "art",
+      "order": 27,
+      "z": 12,
+      "box": [
+        177,
+        872,
+        80,
+        135
+      ],
+      "description": "小型暖棕色剪纸/插画风玉兔，侧身坐姿，长耳、短尾，轮廓柔和，带轻微纸张质感与简化阴影，无文字。",
+      "target": [
+        177,
+        872,
+        80,
+        135
+      ],
+      "presentation": "cutout"
+    }
+  ],
+  "baseline_plan": [
+    {
+      "size": [
+        1024,
+        1024
+      ],
+      "placements": [
+        {
+          "art": {
+            "id": "o003",
+            "kind": "art",
+            "order": 2,
+            "z": 12,
+            "box": [
+              160,
+              265,
+              225,
+              82
+            ],
+            "description": "棕褐色横向毛笔刷痕标签，边缘参差、带干刷飞白与纸纹感；中央为白色手写毛笔字，保留原生白字与刷痕底牌的一体关系。",
+            "target": [
+              160,
+              265,
+              225,
+              82
+            ],
+            "presentation": "cutout",
+            "lettering": "过去"
+          },
+          "crop": [
+            150,
+            255,
+            395,
+            357
+          ],
+          "slot": [
+            24,
+            24,
+            976,
+            226
+          ],
+          "inset_px": 23,
+          "inset_xy": [
+            98,
+            23
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 1.7647058823529411,
+            "required_content_px": [
+              245,
+              102
+            ],
+            "planning_content_px": [
+              245,
+              102
+            ],
+            "hardware_max_content_px": [
+              1190,
+              495
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              432,
+              180
+            ],
+            "meets_requirement": true
+          }
+        },
+        {
+          "art": {
+            "id": "o009",
+            "kind": "art",
+            "order": 8,
+            "z": 12,
+            "box": [
+              950,
+              266,
+              200,
+              85
+            ],
+            "description": "深蓝灰色横向毛笔刷痕标签，边缘有干刷破墨和不规则飞白；中央为白色手写毛笔字，白字与刷痕底牌保持一体。",
+            "target": [
+              950,
+              266,
+              200,
+              85
+            ],
+            "presentation": "cutout",
+            "lettering": "现在"
+          },
+          "crop": [
+            940,
+            256,
+            1160,
+            361
+          ],
+          "slot": [
+            24,
+            274,
+            976,
+            226
+          ],
+          "inset_px": 23,
+          "inset_xy": [
+            98,
+            23
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 1.7142857142857142,
+            "required_content_px": [
+              220,
+              105
+            ],
+            "planning_content_px": [
+              220,
+              105
+            ],
+            "hardware_max_content_px": [
+              1190,
+              567
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              377,
+              180
+            ],
+            "meets_requirement": true
+          }
+        },
+        {
+          "art": {
+            "id": "o015",
+            "kind": "art",
+            "order": 14,
+            "z": 12,
+            "box": [
+              1488,
+              329,
+              340,
+              60
+            ],
+            "description": "暖棕色横向毛笔刷痕标签，中央白色书写体，刷痕边缘粗粝、带纸纹和轻微飞白；保留原生白字，无额外贴纸边。",
+            "target": [
+              1488,
+              329,
+              340,
+              60
+            ],
+            "presentation": "cutout",
+            "lettering": "相关现代技术"
+          },
+          "crop": [
+            1480,
+            321,
+            1836,
+            397
+          ],
+          "slot": [
+            24,
+            524,
+            976,
+            226
+          ],
+          "inset_px": 23,
+          "inset_xy": [
+            98,
+            23
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 2.191011235955056,
+            "required_content_px": [
+              356,
+              76
+            ],
+            "planning_content_px": [
+              356,
+              76
+            ],
+            "hardware_max_content_px": [
+              1190,
+              254
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              779,
+              166
+            ],
+            "meets_requirement": true
+          }
+        },
+        {
+          "art": {
+            "id": "o021",
+            "kind": "art",
+            "order": 20,
+            "z": 12,
+            "box": [
+              1490,
+              607,
+              112,
+              112
+            ],
+            "description": "浅暖黄色圆形底上的深蓝灰货车图标，简化几何轮廓、粗实线条，车轮为圆形，无文字。",
+            "target": [
+              1490,
+              607,
+              112,
+              112
+            ],
+            "presentation": "cutout"
+          },
+          "crop": [
+            1479,
+            596,
+            1613,
+            730
+          ],
+          "slot": [
+            24,
+            774,
+            976,
+            226
+          ],
+          "inset_px": 23,
+          "inset_xy": [
+            98,
+            23
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 1.3432835820895523,
+            "required_content_px": [
+              134,
+              134
+            ],
+            "planning_content_px": [
+              134,
+              134
+            ],
+            "hardware_max_content_px": [
+              780,
+              780
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              180,
+              180
+            ],
+            "meets_requirement": true
+          }
+        }
+      ],
+      "policy": "equal-cells-pixel-budget/1",
+      "grid": {
+        "rows": 4,
+        "columns": 1,
+        "margin": 24,
+        "gap": 24,
+        "cell_size": [
+          976,
+          226
+        ],
+        "policy": "equal-cells-pixel-budget/1"
+      },
+      "pixel_budget": {
+        "all_members_meet_requirement": true
+      }
+    },
+    {
+      "size": [
+        1536,
+        1024
+      ],
+      "placements": [
+        {
+          "art": {
+            "id": "o014",
+            "kind": "art",
+            "order": 13,
+            "z": 6,
+            "box": [
+              1456,
+              295,
+              448,
+              520
+            ],
+            "description": "右侧独立米白色复古纸张技术卡片底板，矩形略带透视感，四边为不规则撕纸/磨损边缘并有浅棕描线，纸面有细腻纤维与旧纸纹；右上和右下带浅金橙色放射花纹/烟花式装饰，底板本身不含文字和两个圆形技术图标。",
+            "target": [
+              1456,
+              295,
+              448,
+              520
+            ],
+            "presentation": "rectangle"
+          },
+          "crop": [
+            1434,
+            273,
+            1920,
+            837
+          ],
+          "slot": [
+            24,
+            24,
+            732,
+            976
+          ],
+          "inset_px": 74,
+          "inset_xy": [
+            74,
+            98
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 1.2016460905349795,
+            "required_content_px": [
+              486,
+              564
+            ],
+            "planning_content_px": [
+              486,
+              564
+            ],
+            "hardware_max_content_px": [
+              672,
+              780
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              584,
+              677
+            ],
+            "meets_requirement": true
+          }
+        },
+        {
+          "art": {
+            "id": "o027",
+            "kind": "art",
+            "order": 26,
+            "z": 12,
+            "box": [
+              90,
+              760,
+              92,
+              238
+            ],
+            "description": "竖向朱红棕色毛笔刷痕标签，边缘粗粝、带干刷飞白和纸纹；白色手写毛笔字从上到下竖排，原生白字无额外描边。",
+            "target": [
+              90,
+              760,
+              92,
+              238
+            ],
+            "presentation": "cutout",
+            "lettering": "我的思考"
+          },
+          "crop": [
+            80,
+            750,
+            192,
+            1008
+          ],
+          "slot": [
+            780,
+            24,
+            732,
+            976
+          ],
+          "inset_px": 74,
+          "inset_xy": [
+            74,
+            98
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 3.0232558139534884,
+            "required_content_px": [
+              112,
+              258
+            ],
+            "planning_content_px": [
+              112,
+              258
+            ],
+            "hardware_max_content_px": [
+              338,
+              780
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              338,
+              780
+            ],
+            "meets_requirement": true
+          }
+        }
+      ],
+      "policy": "equal-cells-pixel-budget/1",
+      "grid": {
+        "rows": 1,
+        "columns": 2,
+        "margin": 24,
+        "gap": 24,
+        "cell_size": [
+          732,
+          976
+        ],
+        "policy": "equal-cells-pixel-budget/1"
+      },
+      "pixel_budget": {
+        "all_members_meet_requirement": true
+      }
+    },
+    {
+      "size": [
+        1536,
+        1024
+      ],
+      "placements": [
+        {
+          "art": {
+            "id": "o016",
+            "kind": "art",
+            "order": 15,
+            "z": 12,
+            "box": [
+              1487,
+              424,
+              115,
+              115
+            ],
+            "description": "浅蓝圆形底上的深蓝雪花图标，线条粗实简洁，圆形底色柔和、边缘干净，无文字。",
+            "target": [
+              1487,
+              424,
+              115,
+              115
+            ],
+            "presentation": "cutout"
+          },
+          "crop": [
+            1476,
+            413,
+            1613,
+            550
+          ],
+          "slot": [
+            24,
+            24,
+            1488,
+            309
+          ],
+          "inset_px": 31,
+          "inset_xy": [
+            149,
+            31
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 1.802919708029197,
+            "required_content_px": [
+              137,
+              137
+            ],
+            "planning_content_px": [
+              137,
+              137
+            ],
+            "hardware_max_content_px": [
+              780,
+              780
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              247,
+              247
+            ],
+            "meets_requirement": true
+          }
+        },
+        {
+          "art": {
+            "id": "o026",
+            "kind": "art",
+            "order": 25,
+            "z": 5,
+            "box": [
+              63,
+              758,
+              1580,
+              270
+            ],
+            "description": "底部横向大幅米白复古纸张/卷轴式说明底板，四边不规则撕纸与卷边，浅棕描线和纸纤维纹理明显，左侧有局部叠纸层；底板本身不含文字、红色竖标签和小兔。",
+            "target": [
+              63,
+              758,
+              1580,
+              270
+            ],
+            "presentation": "rectangle"
+          },
+          "crop": [
+            46,
+            741,
+            1660,
+            1045
+          ],
+          "slot": [
+            24,
+            357,
+            1488,
+            309
+          ],
+          "inset_px": 31,
+          "inset_xy": [
+            149,
+            31
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 0.7372986369268897,
+            "required_content_px": [
+              1614,
+              304
+            ],
+            "planning_content_px": [
+              1190,
+              224
+            ],
+            "hardware_max_content_px": [
+              1190,
+              224
+            ],
+            "hardware_limited": true,
+            "planned_content_px": [
+              1190,
+              224
+            ],
+            "meets_requirement": false
+          }
+        },
+        {
+          "art": {
+            "id": "o028",
+            "kind": "art",
+            "order": 27,
+            "z": 12,
+            "box": [
+              177,
+              872,
+              80,
+              135
+            ],
+            "description": "小型暖棕色剪纸/插画风玉兔，侧身坐姿，长耳、短尾，轮廓柔和，带轻微纸张质感与简化阴影，无文字。",
+            "target": [
+              177,
+              872,
+              80,
+              135
+            ],
+            "presentation": "cutout"
+          },
+          "crop": [
+            168,
+            863,
+            266,
+            1016
+          ],
+          "slot": [
+            24,
+            690,
+            1488,
+            309
+          ],
+          "inset_px": 31,
+          "inset_xy": [
+            149,
+            31
+          ],
+          "pixel_budget": {
+            "required_scale": 1.0,
+            "planned_scale": 1.6143790849673203,
+            "required_content_px": [
+              98,
+              153
+            ],
+            "planning_content_px": [
+              98,
+              153
+            ],
+            "hardware_max_content_px": [
+              499,
+              780
+            ],
+            "hardware_limited": false,
+            "planned_content_px": [
+              158,
+              247
+            ],
+            "meets_requirement": true
+          }
+        }
+      ],
+      "policy": "equal-cells-pixel-budget/1",
+      "grid": {
+        "rows": 3,
+        "columns": 1,
+        "margin": 24,
+        "gap": 24,
+        "cell_size": [
+          1488,
+          309
+        ],
+        "policy": "equal-cells-pixel-budget/1"
+      },
+      "pixel_budget": {
+        "all_members_meet_requirement": false
+      }
+    }
+  ]
+}
