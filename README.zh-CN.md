@@ -4,14 +4,36 @@
 
 本版整理发行结构、文档、许可和可复验工具，保留已认可的生成与排版行为。它仍是 Beta，效果和耗时受输入、宿主图像工具、字体及运行环境影响。
 
-## 选择下载内容
+## 下载后直接上传 ChatGPT
+
+- **[① 下载运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.24-beta.1/PPT.Rebuilder.King.ChatGPT-20261024-Beta1.zip)**
+- **[② 查看 / 下载配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.24-beta.1/PPT-Rebuilder-King-20261024-Beta1-PROJECT-INSTRUCTIONS.txt)**
+
+运行 ZIP 下载后 **不用解压或改名，直接整包上传到 ChatGPT 网页版项目的「来源」**。GitHub 下载文件名中的点号不影响使用；按配套项目指令绑定本次上传的运行包。仓库目前为 Private，只有已获权限的账号可以访问下载。
+
+项目指令也可 [在线查看](docs/CHATGPT_PROJECT_INSTRUCTIONS.txt)，打开 Raw 后复制全部正文。此副本在原指令前补充了 GitHub 下载文件名对应关系，执行正文和生成规则保持原样；运行包本身未改动。
+
+1. 从上面的链接下载运行 ZIP，打开配套项目指令 TXT。
+2. 在 ChatGPT 网页版新建项目，记忆设置选择「仅限本项目」。
+3. 上传运行 ZIP 到项目「来源」，将配套指令全文粘贴到「项目设置」→「项目指令」并保存。
+4. 在项目内新开对话，选择具备文件处理、代码执行和生图能力的模型，上传一张单页高清图，并发送：
+
+   > 请读取本项目指定的 ZIP，按项目指令和包内工作流，将这张截图还原成可编辑 PPTX。
+
+5. 下载返回的 PPTX，用 WPS 或 PowerPoint 打开并检查。
+
+这是 ChatGPT 网页版项目的使用方式，无需在本地 Codex 中安装。作者本次演示使用 5.6，思考程度为中等到极高，实际选项以账号为准。完整步骤与常见问题见 [使用教程](docs/USAGE.zh-CN.md)。
+
+## 发行文件与源码
+
+普通使用者直接下载上面的运行 ZIP 即可。绿色 **Code → Download ZIP** 下载的是开发源码；发行页里的源码和外层交付包可供开发或备用下载，无需作为日常使用的前置步骤。
 
 | 制品 | 用途 | 内容 |
 |---|---|---|
-| `PPT Rebuilder King ChatGPT-20261024-Beta1.zip` | 上传给支持文件处理和图像生成的宿主使用 | 当前程序、已核对的 JavaScript 依赖、SKILL、项目指令和运行清单 |
+| [ChatGPT 运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.24-beta.1/PPT.Rebuilder.King.ChatGPT-20261024-Beta1.zip) | 整包上传 ChatGPT 项目「来源」 | 当前程序、已核对的 JavaScript 依赖、SKILL、项目指令和运行清单；GitHub 下载名为 `PPT.Rebuilder.King.ChatGPT-20261024-Beta1.zip` |
 | `PPT Rebuilder King-20261024-Beta1-source.zip` | 阅读、开发、测试及重建发行包 | 源码、锁文件、工程测试、构建工具和公开合成示例；不携带 `node_modules` |
 
-源码包不作为项目运行来源。使用运行 ZIP 时，上传该版本 ZIP，按根 `PROJECT_INSTRUCTIONS.txt` 设置项目指令；执行合同以包内 `compat-runtime/SKILL.md` 为准。每次输入使用新的独立作业目录，在同一作业目录中继续，保留暂停现场和已有回图。详细步骤见 [使用说明](docs/USAGE.zh-CN.md)。
+源码包不作为项目运行来源。执行合同以运行包内 `compat-runtime/SKILL.md` 为准；项目设置使用上面单独提供的同版本指令。每次输入使用新的独立作业目录，在同一作业目录中继续，保留暂停现场和已有回图。
 
 ## 开发与构建
 
