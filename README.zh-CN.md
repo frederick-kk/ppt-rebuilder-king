@@ -9,7 +9,7 @@
 - **[① 下载运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.25-quality.1/PPT-Rebuilder-King-ChatGPT-20261025.zip)**
 - **[② 查看 / 下载配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.25-quality.1/PPT-Rebuilder-King-20261025-PROJECT-INSTRUCTIONS.txt)**
 
-运行 ZIP 下载后 **不用解压或改名，直接整包上传到 ChatGPT 网页版项目的「来源」**。下载附件名为 `PPT-Rebuilder-King-ChatGPT-20261025.zip`；它是已认可原运行 ZIP 的字节复制，包内身份仍为 `PPT Rebuilder King-20261025-quality-test`。仓库目前为 Private，只有已获权限的账号可以访问下载。
+运行 ZIP 下载后 **不用解压或改名，直接整包上传到 ChatGPT 网页版项目的「来源」**。下载附件名为 `PPT-Rebuilder-King-ChatGPT-20261025.zip`；它是已认可原运行 ZIP 的字节复制，包内身份仍为 `PPT Rebuilder King-20261025-quality-test`。仓库现已公开，可直接访问下载入口。
 
 项目指令也可 [在线查看](docs/CHATGPT_PROJECT_INSTRUCTIONS.txt)，打开 Raw 后复制全部正文。此副本在原指令前补充了 GitHub 下载文件名对应关系，执行正文和生成规则保持原样；运行包本身未改动。
 

@@ -2,14 +2,14 @@
 
 将单页截图重建为对象可编辑的 PowerPoint：普通正文使用原生文本，复杂艺术字和插画使用独立图片。
 
-**当前版本：2026.10.25-quality.1（组件与文字交付修复测试版）。仓库目前为 Private，公开前需由维护者明确决定。**
+**当前版本：2026.10.25-quality.1（组件与文字交付修复测试版）。仓库现已公开。**
 
 ## 先下载这两个文件
 
 - **[① 下载运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.25-quality.1/PPT-Rebuilder-King-ChatGPT-20261025.zip)**
 - **[② 查看 / 下载配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.25-quality.1/PPT-Rebuilder-King-20261025-PROJECT-INSTRUCTIONS.txt)**
 
-**运行 ZIP 下载后保持压缩状态，直接整包上传到 ChatGPT 网页版项目的「来源」。不用解压或改名。** 项目指令是需要复制到项目设置中的文字。仓库保持 Private 时，仅有权限的账号可以下载；公开后普通读者才可访问。
+**运行 ZIP 下载后保持压缩状态，直接整包上传到 ChatGPT 网页版项目的「来源」。不用解压或改名。** 项目指令是需要复制到项目设置中的文字。运行 ZIP 和配套项目指令均可直接下载。
 
 也可以 [在线查看项目指令](docs/CHATGPT_PROJECT_INSTRUCTIONS.txt)，打开 Raw 后复制全部正文。配套指令补充了 GitHub 下载文件名与原运行包的对应关系，生成流程保持原样。
 
