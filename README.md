@@ -28,7 +28,7 @@
 
 这是 **ChatGPT 网页版项目**的使用流程，无需在本地 Codex 中安装。完整使用步骤和下载说明见 [使用教程](docs/USAGE.zh-CN.md)。作者本次演示使用 5.6，思考程度为中等到极高；实际模型、工具和选项以账号为准。
 
-绿色 **Code → Download ZIP** 下载仓库源码。日常使用直接点击上面的「① 下载运行 ZIP」即可。发行附件列表见 [本版下载页](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.10.25-quality.1)；开发和构建见 [中文开发说明](README.zh-CN.md)。[旧 Beta 1 发行版](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.10.24-beta.1)保留供回退，新旧作业不要混用。
+绿色 **Code → Download ZIP** 下载仓库源码。日常使用直接点击上面的「① 下载运行 ZIP」即可。发行附件列表见 [本版下载页](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.10.25-quality.1)；开发和构建见 [中文开发说明](README.zh-CN.md)。GitHub 仅提供当前版本下载，新旧作业不要混用。
 
 当前仍为测试发行版，结果受输入、宿主图像工具、字体与运行环境影响；请依据 [验收范围](docs/RELEASE_VALIDATION.zh-CN.md)和 [已知问题](KNOWN_ISSUES.md)评估结果，不将本地测试或个人使用反馈视为所有页面的效果或耗时保证。
 

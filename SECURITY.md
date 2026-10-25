@@ -2,7 +2,7 @@
 
 ## 维护范围
 
-当前维护版本为 **2026.10.24-beta.1**。旧版本保留用于追溯与回退，不承诺同步修复；发现问题时请说明版本及运行环境。Beta 版仍需按 [已知问题](KNOWN_ISSUES.md) 和 [验收范围](docs/RELEASE_VALIDATION.zh-CN.md) 使用。
+当前维护及分发版本为 **2026.10.25-quality.1**。GitHub 仅保留当前发行，历史提交与变更记录供追溯；不承诺历史版本同步修复。发现问题时请说明版本及运行环境。当前预发行版仍需按 [已知问题](KNOWN_ISSUES.md) 和 [验收范围](docs/RELEASE_VALIDATION.zh-CN.md) 使用。
 
 ## 报告疑似漏洞
 

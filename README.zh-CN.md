@@ -35,7 +35,7 @@
 
 源码包不作为项目运行来源。冻结运行包内的历史资料不参与默认执行；执行合同以 `compat-runtime/SKILL.md` 为准，项目设置使用同版本配套指令。每次输入使用新的独立作业目录，在同一目录中继续，保留暂停现场和已有回图。
 
-主运行 ZIP 的 SHA256：`3a1ecd3a377206b654e4d7c5ed15dfd05292b8603e9ec5109634a20e8d1f82ed`。其包内原名为 `PPT Rebuilder King ChatGPT-20261025-组件与文字交付修复测试版.zip`；下载时无需改回该名称。[旧 Beta 1 发行版](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.10.24-beta.1)保留供回退，不将旧 state 复制到新版本。
+主运行 ZIP 的 SHA256：`3a1ecd3a377206b654e4d7c5ed15dfd05292b8603e9ec5109634a20e8d1f82ed`。其包内原名为 `PPT Rebuilder King ChatGPT-20261025-组件与文字交付修复测试版.zip`；下载时无需改回该名称。GitHub 仅提供当前版本下载，不将旧 state 复制到新版本。
 
 ## 开发重建（开发者使用）
 

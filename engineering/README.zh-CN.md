@@ -44,4 +44,4 @@ python tools/smoke_test.py --runtime "../runtime-unpacked/PPT Rebuilder King-202
 
 `snapshot_baseline`、`capture_fixture`、`inspect_job` 和 `replay_compare` 属于显式开发工具，分别用于快照、捕获、只读诊断和已有返回比较。它们不提供图像服务客户端或缺图兜底。`replay_compare` 的旧库 API 模式用于相应历史样本，不能替代新 CLI 的独立许可与角色绑定演练；失败或缺材料就保留不完整结论。
 
-原输入、真实回图和在途作业保持原样。任何改动运行文件都要形成一致的新版本身份与发行清单，不能手改哈希绕过校验。回退让新作业使用保留的旧运行 ZIP；不把旧 state 强迁到新版本，不因此重生图片。
+原输入、真实回图和在途作业保持原样。任何改动运行文件都要形成一致的新版本身份与发行清单，不能手改哈希绕过校验。维护者需要本地回退时，让新作业使用本地保留的旧运行 ZIP（GitHub 不再提供旧发行）；不把旧 state 强迁到新版本，不因此重生图片。
