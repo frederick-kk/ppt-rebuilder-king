@@ -10,8 +10,10 @@ description: 按当前图片制作对象可编辑单页PPT，按任务身份执�
 ## 从空目录启动
 
 ```text
-python -m newpath --work /absolute/new-job --source /absolute/current-image.png --expected-package "PPT Rebuilder King-20261024-beta1"
+python -m newpath --work /absolute/new-job --source /absolute/current-image.png --expected-package "PPT Rebuilder King-20261025-quality-test"
 ```
+
+首次生图前核对CLI回传runtime_identity.package_id为本版身份；不匹配时读取本次新ZIP并启动正确目录。
 
 作业放在compat-runtime之外。同一图片始终继续该目录，不新建目录绕过暂停；旧版作业不迁移。新CLI冻结本地版本、调用策略、提示词审计和reviewed-existing-output/1交付策略。恢复会核对清单与保存身份。
 
@@ -47,4 +49,4 @@ python -m newpath --work /absolute/new-job
 
 普通透明组件不按色抠像、不删连通块；有参考和各成员核心时按alpha>1识别几何，原RGBA全保留，先分列再分行。保留正常宽隔带路径，仅其失败且存在唯一2–5px真空带、相邻主体二维参考归属明确且没有核心跨线时恢复窄隔带并保存证据。无参考、多候选、真融合/切边仍拒绝，不强制把未知主体入稿。正确提取不代表模型没有附带装饰或光晕。
 
-正文保留原文/字体/runs和原生编辑性，仅支持的水平普通行做有限宽度拟合，最大缩字号25%；缺匹配字体明确估算，ASCII数字估0.67em，其他沿用。真实超预算不能假装已测量或任意缩小。文件写出和done是技术交付状态，不代表完整还原、真实计费次数或十分钟时效已验收。
+正文保留原文/字体/runs和原生编辑性，仅支持的水平普通行做有限宽度拟合，最大缩字号25%；缺匹配字体明确估算，ASCII数字估0.67em、普通ASCII空格估0.33em，其他沿用；实际匹配字体测量和25%字号下限保持。真实超预算不能假装已测量或任意缩小。文件写出和done是技术交付状态，不代表完整还原、真实计费次数或十分钟时效已验收。

@@ -1,12 +1,12 @@
 # 第三方依赖与许可
 
-源码发行包保留源码与真实锁文件，不携带 `node_modules`；ChatGPT 运行发行包携带下表中的 17 个实际依赖目录及其原声明。第一方 MIT 不替换第三方许可。
+源码发行包保留源码与真实锁文件，不携带 `node_modules`；认可的 ChatGPT 运行附件原样保留 17 个实际依赖目录，另有 `https` 空壳元数据目录；开发重建白名单仅保留 17 个实际依赖目录。第一方 MIT 不替换第三方许可。
 
 | npm 包 | 锁定版本 | 上游声明 | 本包保留的原文 |
 |---|---|---|---|
 | `@types/node` | 22.20.5 | `MIT` | [@types-node-22.20.5-LICENSE](LICENSES/node/@types-node-22.20.5-LICENSE) |
 | `core-util-is` | 1.0.3 | `MIT` | [core-util-is-1.0.3-LICENSE](LICENSES/node/core-util-is-1.0.3-LICENSE) |
-| `https` | 1.0.0 | `ISC` | 不分发该空壳目录；上游未提供全文 |
+| `https` | 1.0.0 | `ISC` | 认可附件保留原331字节元数据；开发重建省略；上游未提供全文 |
 | `image-size` | 2.0.4 | `MIT` | [image-size-2.0.4-LICENSE](LICENSES/node/image-size-2.0.4-LICENSE) |
 | `immediate` | 3.0.6 | `MIT` | [immediate-3.0.6-LICENSE.txt](LICENSES/node/immediate-3.0.6-LICENSE.txt) |
 | `inherits` | 2.0.4 | `ISC` | [inherits-2.0.4-LICENSE](LICENSES/node/inherits-2.0.4-LICENSE) |
@@ -28,7 +28,7 @@
 - **isarray**：原包没有独立 LICENSE，完整 MIT 和既有版权行在 README；本包复制完整原 README。
 - **jszip**：原声明为 MIT OR GPL-3.0-or-later，完整原文件保留两种文本，不把它改写成单一 MIT 声明。
 - **pako**：原声明为 MIT AND Zlib。其独立 LICENSE 及 lib/zlib 原版权/许可头都保留；LICENSES 额外保存一份字节不改的 Zlib 头部。
-- **https 1.0.0**：官方 npm tarball 只有一个 331 字节的 package/package.json，声明 ISC，没有许可全文、README 或实现文件。运行发行白名单省略该 npm 元数据目录，源码包也不携带它；锁文件仍保留真实上游依赖关系。当前 PptxGenJS 的 CJS/ES 代码使用 `import('node:https')`，宿主 Node 内置模块提供该能力。本地 Node 22.21.0 已确认 `require.resolve('https') === 'https'`。该处置是发行范围及模块解析事实，不是对缺失原文的法律认证；没有凭作者字段补造版权行。
+- **https 1.0.0**：官方 npm tarball 只有一个 331 字节的 package/package.json，声明 ISC，没有许可全文、README 或实现文件。为保持认可 ZIP 字节不变，本次主附件保留该原元数据文件；开发重建白名单省略该目录，源码包也不携带它。锁文件仍保留真实上游依赖关系。当前 PptxGenJS 的 CJS/ES 代码使用 `import('node:https')`，宿主 Node 内置模块提供该能力。本地 Node 22.21.0 已确认 `require.resolve('https') === 'https'`。该处置是发行范围及模块解析事实，不是对缺失原文的法律认证；没有凭作者字段补造版权行。
 
 每个版本都从 [官方 npm registry](https://registry.npmjs.org/) 获取 tarball 核对。精确版本链接、tarball SHA-256、registry 完整性及原文副本 SHA-256 见 [dependency/SBOM.json](dependency/SBOM.json) 与 [LICENSES/SOURCE_INDEX.json](LICENSES/SOURCE_INDEX.json)。原文与对应上游版本逐字节核对；未修改运行 node_modules 源码或许可文件。
 

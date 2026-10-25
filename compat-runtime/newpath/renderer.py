@@ -28,6 +28,9 @@ _MIN_TEXT_SCALE = .75
 # YaHei digit samples are about .62em; .67em allows modest extra space. This is
 # an estimate, never a strict upper bound for arbitrary unavailable fonts.
 _ASCII_DIGIT_ADVANCE_EM = .67
+# Ordinary U+0020 is narrower than a CJK glyph. Keep this an explicitly nominal
+# estimate; full-width whitespace and the matching-font path remain unchanged.
+_ASCII_SPACE_ADVANCE_EM = .33
 
 
 def _font_directories():
@@ -173,9 +176,9 @@ def _contain_width(item):
     width,status,face = _measured_width(item)
     if status == 'measured':
         return width,status,face,False
-    # Keep the existing wide-letter/symbol allowances, but ordinary ASCII
-    # numbering does not occupy a full CJK em. No unavailable-font estimate is
-    # a guaranteed bound, and no substitute face is labelled as the author font.
+    # Keep the existing wide-letter/symbol allowances, but ASCII numbering and
+    # ordinary spaces do not occupy a full CJK em. No unavailable-font estimate
+    # is a guaranteed bound; no substitute face is labelled as the author font.
     total = 0.0
     for run in item.get('runs') or [{'text':item['text']}]:
         size = run.get('size',item['size'])
@@ -183,6 +186,7 @@ def _contain_width(item):
             if unicodedata.category(char) in {'Mn','Me','Cf'}:
                 continue
             advance = (_ASCII_DIGIT_ADVANCE_EM if '0' <= char <= '9'
+                       else _ASCII_SPACE_ADVANCE_EM if char == ' '
                        else (2 if ord(char) >= 0x1F000 else 1))
             total += size * advance
     total += max(0,len(item['text'])-1) * item.get('tracking',0)
@@ -273,7 +277,8 @@ def _fit_text(item, *, textfit_policy=None):
     if status == 'estimated':
         measurement.update({'estimate_is_strict_upper_bound':False,
                             'estimate_basis':'script_aware_nominal_advances',
-                            'ascii_digit_advance_em':_ASCII_DIGIT_ADVANCE_EM})
+                            'ascii_digit_advance_em':_ASCII_DIGIT_ADVANCE_EM,
+                            'ascii_space_advance_em':_ASCII_SPACE_ADVANCE_EM})
     record = {'textfit_policy':TEXT_FIT_POLICY,'authored_box':authored_box,
               'authored_size_px':item['size'],'effective_size_px':fitted['size'],'measurement':measurement}
     if 'runs' in item:

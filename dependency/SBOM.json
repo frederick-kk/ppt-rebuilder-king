@@ -1,8 +1,8 @@
 {
   "schema": "ppt-rebuilder.dependency-sbom/1",
   "format_note": "Project-specific machine-readable dependency inventory; not asserted to be an SPDX or CycloneDX conformance document.",
-  "release_id": "PPT Rebuilder King-20261024-beta1",
-  "prepared_date": "2026-10-24",
+  "release_id": "PPT Rebuilder King-20261025-quality-test",
+  "prepared_date": "2026-10-25",
   "first_party": {
     "license": "MIT",
     "notice_file": "LICENSE",
@@ -11,13 +11,13 @@
   },
   "distribution_policy": {
     "source_archive": "node_modules excluded; source/lockfile and third-party notice copies included",
-    "runtime_archive": "17 npm package directories included; metadata-only node_modules/https directory omitted by explicit release whitelist",
+    "runtime_archive": "Frozen approved artifact retains 17 implementation dependency directories plus metadata-only node_modules/https/package.json (394 files); developer rebuild excludes the metadata-only directory (393 files).",
     "upstream_lockfile_unchanged": true,
     "runtime_source_code_unchanged_by_this_license_work": true,
     "node_executable_bundled": false,
     "python_distributions_bundled": false,
-    "policy_status": "Release build policy; final archive content must be verified by packager.",
-    "runtime_file_allowlist": "runtime-files.json pins 393 approved dependency files by path, size and SHA256 and binds package-lock.json; installer wrappers and upstream development extras are not distributed."
+    "policy_status": "Official frozen attachment and developer rebuild are distinct artifacts; RELEASE.json binds the approved attachment SHA256.",
+    "runtime_file_allowlist": "runtime-files.json pins 393 development-rebuild dependency files and the unchanged lockfile. Official frozen attachment retains 394 original files recorded by its own MANIFEST.json."
   },
   "components": [
     {
@@ -70,7 +70,7 @@
       "direct_dependency": false,
       "declared_in_package_lock": true,
       "source_archive_bundles_module": false,
-      "runtime_archive_bundles_module": false,
+      "runtime_archive_bundles_module": true,
       "license_documents": [],
       "primary_source": {
         "registry_url": "https://registry.npmjs.org/https/1.0.0",
@@ -79,7 +79,7 @@
         "tarball_sha256": "7d6cc44a6471377a9299371e4d207cd2607bbaf7bcca1b220c8bd6831fbbe645",
         "registry_sha512_integrity_matches": true
       },
-      "distribution_resolution": "Omit the metadata-only npm directory from the runtime release whitelist. Preserve the upstream lockfile declaration; use the Node built-in module.",
+      "distribution_resolution": "Frozen approved attachment retains the metadata byte-for-byte; developer rebuild omits it. Preserve unchanged lockfile; runtime uses the Node built-in node:https module.",
       "upstream_license_text_available": false,
       "upstream_tarball_file_count": 1,
       "upstream_tarball_only_file": "package/package.json",
@@ -96,7 +96,9 @@
           "line": 4843,
           "expression": "import('node:https')"
         }
-      ]
+      ],
+      "runtime_archive_content": "Original 331-byte package.json metadata only; no implementation.",
+      "developer_rebuild_bundles_module": false
     },
     {
       "name": "image-size",

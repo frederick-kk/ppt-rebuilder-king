@@ -37,7 +37,8 @@ def _reference_supports_group_gap(projection,reference,lo,hi,planned,gap,band,ra
 
 
 def _separators(projection, count, cell_size, margin, gap, scale,
-                reference=None,radius=0,supported=None,unconfirmed=None,narrow_accept=None):
+                reference=None,radius=0,supported=None,unconfirmed=None,narrow_accept=None,
+                owned_accept=None):
     cuts, failed, ambiguous, changed = [], [], [], False
     for index in range(count-1):
         left_center = (margin + cell_size/2 + index*(cell_size+gap))*scale
@@ -66,7 +67,13 @@ def _separators(projection, count, cell_size, margin, gap, scale,
                 if _reference_supports_group_gap(projection,reference,lo,hi,planned,
                                                  gap*scale,bands[cut],radius,unconfirmed):
                     if supported is not None:supported.append(index)
-                else:ambiguous.append(index)
+                else:
+                    recovered=None if owned_accept is None else owned_accept(
+                        index,lo,hi,[(choice[-1],bands[choice[-1]]) for choice in choices])
+                    if recovered is None:ambiguous.append(index)
+                    else:
+                        cut=recovered
+                        if supported is not None:supported.append(index)
         else:
             cut = round(planned)
             accepted=False
@@ -167,6 +174,47 @@ def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = 
         for column in range(columns):
             x0,x1=xs[column:column+2]
             supported=[]
+            def accept_owned(index,lo,hi,candidates):
+                # A small written group may sit outside the center-to-center
+                # search, yet every one of its 2-D components has a known
+                # reference owner. Accept only the unique real empty band that
+                # keeps the complete adjacent groups on their proper sides.
+                adjacent=[]
+                for row in (index,index+1):
+                    matches=[member['id'] for member in members
+                        if round((member['slot'][0]-margin)/(cell_width+gap))==column
+                        and round((member['slot'][1]-margin)/(cell_height+gap))==row]
+                    if len(matches)!=1:return None
+                    adjacent.append(matches[0])
+                if any(identity in crossed for identity in adjacent):return None
+                groups=[[label for label,identities in owners.items() if identities=={identity}]
+                        for identity in adjacent]
+                if not all(groups):return None
+                before,after=groups
+                known=set(before+after)
+                span0=min(lo,*(region_boxes[label][1] for label in known))
+                span1=max(hi,*(region_boxes[label][3] for label in known))
+                observed={int(label) for label in np.unique(labels[span0:span1,x0:x1]) if label}
+                # Even a single unknown core pixel is identity evidence we do
+                # not possess. Unlike the separate narrow-speck allowance,
+                # this path never allocates an unowned island to a member.
+                if observed-known:return None
+                feasible=[]
+                for cut,(start,stop) in candidates:
+                    if (all(region_boxes[label][3]<=start for label in before)
+                            and all(region_boxes[label][1]>=stop for label in after)):
+                        feasible.append((cut,start,stop))
+                if len(feasible)!=1:return None
+                cut,start,stop=feasible[0]
+                note={'policy':'unique-reference-owned-native-row-gutter/1',
+                      'axis':'y','column':column,'index':index,'band':[start,stop],
+                      'cut':cut,'members':adjacent,
+                      'owner_component_counts':[len(group) for group in groups],
+                      'unconfirmed_core_pixels':0,'identity_quality':'not_evaluated',
+                      'alpha_threshold_for_geometry_only':1,'all_rgba_pixels_preserved':True}
+                result.setdefault('owned_gutter_recoveries',[]).append(note)
+                result['warnings'].append({'code':'reference_owned_grid_gutter',**note})
+                return cut
             def accept_narrow(index,lo,hi,start,stop,cut,minimum):
                 # Only a full empty alpha>1 row band can enter here. Reference
                 # ownership must put every known adjacent subject on its own
@@ -222,7 +270,7 @@ def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = 
                               margin,gap,height/reference_size[1],
                               reference[:,x0:x1].any(axis=1),radius,supported,
                               None if unconfirmed is None else unconfirmed[:,x0:x1].any(axis=1),
-                              narrow_accept=accept_narrow)
+                              narrow_accept=accept_narrow,owned_accept=accept_owned)
             column_rows[column]=local
             changed_y=changed_y or local[3]
             result.setdefault('column_row_cuts',{})[str(column)]=list(local[0])

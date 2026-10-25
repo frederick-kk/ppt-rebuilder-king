@@ -20,8 +20,8 @@ try:
 except ImportError:
     version = None
 
-PACKAGE_ID = 'PPT Rebuilder King-20261024-beta1'
-ARCHIVE_NAME = 'PPT Rebuilder King ChatGPT-20261024-Beta1.zip'
+PACKAGE_ID = 'PPT Rebuilder King-20261025-quality-test'
+ARCHIVE_NAME = 'PPT Rebuilder King ChatGPT-20261025-组件与文字交付修复测试版.zip'
 EXECUTION_MODE = 'explicit-start/1'
 
 

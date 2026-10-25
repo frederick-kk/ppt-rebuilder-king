@@ -1,25 +1,26 @@
 {
-  "schema": "ppt-rebuilder.public-release-validation/1",
-  "date": "2026-10-24",
-  "version": "2026.10.24-beta.1",
-  "environment": {
-    "os": "Windows 10",
-    "python": "3.10.9",
-    "node": "v22.21.0",
-    "npm": "10.9.4",
-    "Pillow": "12.3.0",
-    "NumPy": "2.2.6",
-    "Office": "Microsoft PowerPoint 16.0",
-    "ruler_default_test_font": "Installed Arial 14; alternate-font differences are known"
+  "schema": "ppt-rebuilder.public-release-validation/2",
+  "date": "2026-10-25",
+  "version": "2026.10.25-quality.1",
+  "package_id": "PPT Rebuilder King-20261025-quality-test",
+  "approved_candidate": {
+    "tests": 415,
+    "passed": 404,
+    "skipped": 11,
+    "failures": 0,
+    "errors": 0,
+    "scope": "Local candidate validation with two historic source comparison files supplied privately; not fresh independent source-package testing."
   },
-  "unit_tests": {
-    "run": 412,
-    "passed": 401,
+  "source_validation": {
+    "status": "passed",
+    "tests": 429,
+    "passed": 418,
     "skipped": 11,
     "failures": 0,
     "errors": 0,
     "command": "python -B -m unittest discover -s engineering/tests -v",
-    "isolation": "Fresh source ZIP extraction with npm ci; no private diagnostics, PRK diagnostic variables or historic sibling packages",
+    "isolation": "Fresh independently extracted source ZIP; 393 hash-pinned dependencies copied from the approved artifact; no private diagnostics or historic sibling directories; PRK diagnostic variables removed.",
+    "scope": "Runtime, engineering and developer build tests; not provider/model/Office visual or end-to-end time certification.",
     "skipped_test_records": [
       "test_three_actual_diagnostic_reference_returns_are_rejected (test_board_result_provenance.BoardResultProvenance) ... skipped 'actual native-alpha diagnostic not supplied'",
       "test_supplied_real_five_backgrounds_and_two_foregrounds_pause_without_new_calls (test_generation_discipline.GenerationDiscipline) ... skipped 'Real diagnostic ZIP not supplied'",
@@ -34,35 +35,41 @@
       "test_actual_653_over_217_diagnostic_title_retains_145_high_ink (test_wordart_placement.DiagnosticTitlePlacement) ... skipped 'Set PRK_REAL_TITLE_DIAGNOSTIC to the supplied diagnostic ZIP'"
     ]
   },
-  "behavior": {
-    "byte_identical_runtime_behavior_files": 19,
-    "identity_only_reference_changes": true,
-    "existing_cached_case_artworks": 10,
-    "existing_cached_case_native_text_frames": 21,
-    "cached_case_office_pixels_equal_to_approved": true
+  "provider_image_calls_in_local_validation": 0,
+  "user_feedback": {
+    "selected_for_current_release": true,
+    "scope": "Maintainer reported this version good; not independently observed model visual/timing certification."
   },
-  "Office_editing": {
-    "sample": "examples/synthetic-basic",
-    "private_copy_edit_save_reopen_verified": [
-      "native text",
-      "shape fill",
-      "line",
-      "picture position"
+  "official_artifact": {
+    "sha256": "3a1ecd3a377206b654e4d7c5ed15dfd05292b8603e9ec5109634a20e8d1f82ed",
+    "frozen_bytes": true,
+    "developer_rebuild_byte_identical": false
+  },
+  "runtime_scope": {
+    "working_pixels": [
+      1920,
+      1080
     ],
-    "public_original_unchanged": true
+    "ruler": [
+      25,
+      50,
+      5
+    ],
+    "generation_prompt_and_call_policy_unchanged": true,
+    "native_space_estimation_fixed": true,
+    "owned_grid_gaps_fixed": true
   },
-  "dependencies": {
-    "npm_audit_known_vulnerabilities": 0,
-    "npm_audit_query_date": "2026-10-24",
-    "lockfile_unchanged": true,
-    "pinned_distributed_dependency_files": 393,
-    "fresh_npm_ci_and_bundled_builds_byte_equal": true
-  },
-  "provider_image_calls": 0,
   "limits": [
-    "Beta, not Stable",
-    "Not new model visual or end-to-end timing certification",
-    "Alternate-font ruler layout remains limited",
-    "Pattern scanning is finite and does not certify legal rights or absence of all secrets"
-  ]
+    "No fresh provider telemetry, model run or end-to-end timing certification",
+    "No new full Office or cross-platform editing certification",
+    "Unavailable original historic job state is not reconstructed as authentic evidence",
+    "Optional private diagnostics are not distributed; skipped tests are not counted as passing"
+  ],
+  "environment": {
+    "os": "Windows 10",
+    "python": "3.10.9",
+    "node": "v22.21.0",
+    "Pillow": "12.3.0",
+    "NumPy": "2.2.6"
+  }
 }
