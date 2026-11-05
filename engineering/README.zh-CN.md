@@ -1,6 +1,6 @@
 # 工程测试与发行检查
 
-这些命令由开发者主动运行，不进入正常生成流程。需要 Python 3.10+、Pillow、NumPy 和现有 Node.js；源码包的 JavaScript 依赖须先按锁文件准备。内部真实诊断与旧开发目录不随公开包分发；可选历史对照必须明确跳过，不能依赖开发者电脑碰巧有旧文件。
+这些命令由开发者主动运行，不进入正常生成流程。工程回归需要 Python 3.10+、Pillow、NumPy 和现有 Node.js；源码开发的 JavaScript 依赖另行准备。内部真实诊断与旧开发目录不随公开包分发，可选历史对照缺失时应明确跳过。
 
 ## 本地回归
 
@@ -8,40 +8,38 @@
 
 ```text
 python -B -m unittest discover -s engineering/tests -v
+python -B -m unittest discover -s tools -p test_repack_runtime.py -v
 ```
 
-本轮认可候选本地回归 415 项：404 通过、11 跳过，包含私下提供的两个历史源码对照文件。GitHub 独立干净源码回归统计另列于 [本版验收范围](../docs/RELEASE_VALIDATION.zh-CN.md)，不沿用旧版或私有环境的统计。
+2026-10-25 的本地工程回归为 415 项（404 通过、11 跳过），当时提供了两个私有历史源码对照文件；同日独立解压源码回归为 429 项（418 通过、11 跳过、0 失败/错误），使用当时逐项核验的 393 个固定依赖文件。这些是历史环境的结果，不是本次发行整理新运行的统计。验证记录见 [仓库验收说明](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/docs/RELEASE_VALIDATION.zh-CN.md)。
 
-记录操作系统、Python/Node/Pillow/NumPy、可用字体及通过/失败/错误/跳过明细。Windows 通过记录不等于 Linux 或不同字体也通过；跨字体标尺问题见 [KNOWN_ISSUES](../KNOWN_ISSUES.md)。不要删除真实失败断言或把未提供的历史资料伪造成夹具。
-
-本轮独立源码归档回归：**429 项，418 通过、11 明确跳过、0 失败/错误**；依赖为认可附件中逐项核验的 393 个固定文件，无私有诊断或旧兄弟包。此结果与认可候选的 415 项本地回归分开记录，详见 [验证范围](../docs/RELEASE_VALIDATION.zh-CN.md)。
+记录本次实际操作系统、Python/Node/Pillow/NumPy、可用字体及通过/失败/错误/跳过明细。Windows 结果不代表 Linux 或不同字体通过；跨字体标尺问题见 [KNOWN_ISSUES](../KNOWN_ISSUES.md)。缺失的可选诊断不计为通过，不删除失败断言或伪造历史夹具。
 
 ## 构建与独立校验
 
+先下载本版运行 ZIP，放在源码目录之外，例如 `../downloads/`。使用另一个新的外部目录存放构建结果：
+
 ```text
-python tools/build_release.py --output ../quality1-dev-dist
-python tools/verify_release.py "../quality1-dev-dist/PPT Rebuilder King ChatGPT-20261025-组件与文字交付修复测试版.zip"
-python tools/verify_release.py "../quality1-dev-dist/PPT-Rebuilder-King-20261025-source.zip"
+python tools/repack_runtime.py build --baseline ../downloads/PPT-Rebuilder-King-ChatGPT-20261105.zip --source . --output ../package-dist
+python tools/repack_runtime.py verify --baseline ../downloads/PPT-Rebuilder-King-ChatGPT-20261105.zip --runtime ../package-dist/PPT-Rebuilder-King-ChatGPT-20261105.zip --source-archive ../package-dist/PPT-Rebuilder-King-20261105-source.zip
 ```
 
-构建输出为源码树外的新目录。构建器按白名单分开源码与运行包，生成版本清单及 SHA256SUMS；校验器检查归档路径、文件清单、长度、哈希及有限内容规则。两者不证明模型还原质量或公开权利；许可边界见根 NOTICE 和第三方许可清单。
+工具核对基线归档的路径、CRC、公开清单、固定的内部运行清单和快照，以及全部 423 个运行文件的内容；从基线复制运行文件，仅重新构建外层发行文件与独立源码归档。程序身份仍为 `PPT Rebuilder King-20261025-quality-test`，运行包根目录为 `PPT Rebuilder King`。本流程无需重新安装 npm 依赖，不重写内部代码、SKILL、依赖或 `MANIFEST.json`。
 
-`dependency/runtime-files.json` 固定认可依赖的393个文件及其长度、SHA256，并绑定未改动的锁文件。构建器只读取这些依赖文件；`npm ci` 产生的安装器快捷方式及上游开发文件不入包。必要文件缺失、内容变化或锁文件不符时拒绝构建，不自动联网安装，也不改写依赖代码。这样可从同一干净源码与固定依赖重复构建开发制品。
-
-主下载是认可原 ZIP 的冻结字节副本，沿用它自己的两层清单与历史外层结构；以上工具生成的是单独的开发重建格式，**不与主附件字节相同，也不替换主附件**。`tools/verify_release.py` 只支持开发重建格式。认可附件按 `RELEASE.json` 的 SHA256、原 `PACKAGE_MANIFEST.json` 与 `compat-runtime/MANIFEST.json` 核对，不关闭校验强行转换格式。
+源码归档保留运行源码、开发工具、测试、说明和公开合成夹具，不携带 `node_modules`、私有诊断或内部历史材料。两类归档各有文件清单；构建输出另含配套项目指令和 SHA256SUMS。运行文件逐项不变不等于整个 ZIP 字节相同。文件核对不证明模型还原质量、提供方计费或公开权利；许可边界见 [NOTICE](../NOTICE.md) 和 [第三方许可](../THIRD_PARTY_LICENSES.md)。
 
 ## 新 CLI 合成演练
 
-先将构建得到的运行 ZIP 解压到独立目录，再执行：
+将本版运行 ZIP 解压到独立目录后执行：
 
 ```text
-python tools/smoke_test.py --runtime "../runtime-unpacked/PPT Rebuilder King-20261025-quality-test/compat-runtime" --work ../quality1-smoke-new
+python tools/smoke_test.py --runtime "../runtime-unpacked/PPT Rebuilder King/compat-runtime" --work ../package-smoke-new
 ```
 
-运行路径改为实际解压位置，`--work` 使用新的外部目录。脚本用程序生成的确定性 PNG 演练四个任务和真实 CLI、本地 PPTX 组装；角色核对为模拟宿主声明，不是人眼核对。它不调用图像服务，提供方调用或计费信息保持 null/unknown。公开四文件示例说明见 [examples/synthetic-basic](../examples/synthetic-basic/README.md)。
+运行路径改为实际解压位置，`--work` 使用新的外部目录。脚本使用程序生成的确定性 PNG 演练四个任务和真实 CLI、本地 PPTX 组装；角色核对为模拟宿主声明，不是人眼核对。它不调用图像服务，提供方调用或计费信息保持 null/unknown。示例说明见 [examples/synthetic-basic](../examples/synthetic-basic/README.md)。
 
 ## 其他开发工具与回退
 
-`snapshot_baseline`、`capture_fixture`、`inspect_job` 和 `replay_compare` 属于显式开发工具，分别用于快照、捕获、只读诊断和已有返回比较。它们不提供图像服务客户端或缺图兜底。`replay_compare` 的旧库 API 模式用于相应历史样本，不能替代新 CLI 的独立许可与角色绑定演练；失败或缺材料就保留不完整结论。
+`snapshot_baseline`、`capture_fixture`、`inspect_job` 和 `replay_compare` 属于显式开发工具，分别用于快照、捕获、只读诊断和已有返回比较。它们不提供图像服务客户端或缺图兜底。`replay_compare` 的旧库 API 模式用于相应历史样本，不能替代新 CLI 的独立许可与角色绑定演练；失败或缺材料时保留不完整结论。
 
-原输入、真实回图和在途作业保持原样。任何改动运行文件都要形成一致的新版本身份与发行清单，不能手改哈希绕过校验。维护者需要本地回退时，让新作业使用本地保留的旧运行 ZIP（GitHub 不再提供旧发行）；不把旧 state 强迁到新版本，不因此重生图片。
+原输入、真实回图和在途作业保持原样。运行文件的行为变更需要一致的新版本身份与发行清单，不能手改哈希绕过校验。维护者如需本地回退，让新作业使用本地保留的旧运行 ZIP，不把旧 state 强迁到新版本，不因此重生图片。

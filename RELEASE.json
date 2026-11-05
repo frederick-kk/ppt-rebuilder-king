@@ -1,13 +1,12 @@
 {
   "schema": "ppt-rebuilder.release/1",
-  "version": "2026.10.25-quality.1",
-  "release_date": "2026-10-25",
+  "version": "2026.11.05-package.1",
+  "release_date": "2026-11-05",
   "package_id": "PPT Rebuilder King-20261025-quality-test",
-  "archive_name": "PPT Rebuilder King ChatGPT-20261025-组件与文字交付修复测试版.zip",
-  "source_archive_name": "PPT-Rebuilder-King-20261025-source.zip",
-  "source_date_epoch": 1792886400,
-  "baseline_archive_sha256": "17b3202f2a7aeb6a75d3f6a39c909d0f94076347e7c4dff859752c8a590be343",
-  "status": "prerelease-user-accepted-candidate",
+  "archive_name": "PPT-Rebuilder-King-ChatGPT-20261105.zip",
+  "source_archive_name": "PPT-Rebuilder-King-20261105-source.zip",
+  "source_date_epoch": 1793836800,
+  "status": "distribution-only",
   "working_pixels": [
     1920,
     1080
@@ -21,21 +20,31 @@
   "source_license": "MIT",
   "copyright": "Copyright (c) 2026 FrederikKK / frederick-kk",
   "approved_artifact": {
-    "release_tag": "v2026.10.25-quality.1",
-    "download_name": "PPT-Rebuilder-King-ChatGPT-20261025.zip",
-    "original_archive_name": "PPT Rebuilder King ChatGPT-20261025-组件与文字交付修复测试版.zip",
-    "sha256": "3a1ecd3a377206b654e4d7c5ed15dfd05292b8603e9ec5109634a20e8d1f82ed",
-    "bytes": 3081461,
-    "members": 778,
-    "runtime_manifest_sha256": "405898341da9631bdc5a60f5f7cf3ce04c2b3f02dc8a45756bc2f2381f1773ee",
-    "runtime_source_snapshot_sha256": "bf24b73c1f5a47e1d4bc75ee77b214bdc8525009de61849a32b53e2d312379b6",
-    "policy": "Frozen byte copy of the user-accepted candidate; never rebuild this official attachment from current source."
+    "release_tag": "v2026.11.05-package.1",
+    "download_name": "PPT-Rebuilder-King-ChatGPT-20261105.zip",
+    "archive_root": "PPT Rebuilder King",
+    "sha256": null,
+    "bytes": null,
+    "members": null,
+    "policy": "Distribution-only repackaging. Preserve every compat-runtime file byte for byte; the outer archive is newly built. Whole-archive hashes are published in the external SHA256SUMS attachment."
   },
-  "developer_rebuild": {
-    "byte_identical_to_approved_artifact": false,
-    "not_a_replacement_for_approved_download": true,
-    "dependency_files": 393,
-    "format": "ppt-rebuilder.public-package/1",
-    "note": "Allowlisted development packaging excludes sanitized historic material and the metadata-only npm https directory. verify_release.py supports this development format. The official attachment retains its original inventories and is checked by SHA256 and its embedded manifests."
+  "archive_root": "PPT Rebuilder King",
+  "source_archive_root": "PPT Rebuilder King-source",
+  "project_instructions_name": "PPT-Rebuilder-King-20261105-PROJECT-INSTRUCTIONS.txt",
+  "sha256sums_name": "PPT-Rebuilder-King-20261105-SHA256SUMS.txt",
+  "runtime": {
+    "package_id": "PPT Rebuilder King-20261025-quality-test",
+    "directory": "compat-runtime",
+    "files": 423,
+    "manifest_sha256": "405898341da9631bdc5a60f5f7cf3ce04c2b3f02dc8a45756bc2f2381f1773ee",
+    "source_snapshot_sha256": "bf24b73c1f5a47e1d4bc75ee77b214bdc8525009de61849a32b53e2d312379b6",
+    "byte_identical_to_20261025_runtime": true
+  },
+  "distribution": {
+    "runtime_includes": "Runtime files, dependencies, workflow, project instructions, manifests and required legal notices.",
+    "runtime_excludes": "Development tools, tests, internal development and historical materials.",
+    "source_includes": "Source, developer documentation, build tools, tests and public synthetic examples.",
+    "runtime_behavior_changed": false,
+    "generation_prompt_changed": false
   }
 }

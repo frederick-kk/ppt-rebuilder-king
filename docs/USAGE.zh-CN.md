@@ -2,20 +2,20 @@
 
 **下载运行 ZIP → 整包上传 ChatGPT 项目的「来源」→ 保存项目指令 → 发送单页图片和提示词 → 下载 PPTX。**
 
-普通使用者不需要安装本地 Codex，也不需要在电脑上解压运行 ZIP 或安装开发依赖。以下步骤对应 `2026.10.25-quality.1`（组件与文字交付修复测试版）。仓库现已公开，可直接下载运行 ZIP 和配套项目指令。
+普通使用者不需要安装本地 Codex，也不需要在电脑上解压运行 ZIP 或安装开发依赖。以下步骤对应 `2026.11.05-package.1`（发行整理版）。仓库现已公开，可直接下载运行 ZIP 和配套项目指令。
 
 ## ① 从 GitHub 下载运行 ZIP
 
 直接点击下面两个入口：
 
-- **[下载 ChatGPT 运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.25-quality.1/PPT-Rebuilder-King-ChatGPT-20261025.zip)**
-- **[下载配套项目指令 TXT](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.10.25-quality.1/PPT-Rebuilder-King-20261025-PROJECT-INSTRUCTIONS.txt)**
+- **[下载 ChatGPT 运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-ChatGPT-20261105.zip)**
+- **[下载配套项目指令 TXT](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261105-PROJECT-INSTRUCTIONS.txt)**
 
-项目指令也可[在线查看并复制全文](CHATGPT_PROJECT_INSTRUCTIONS.txt)。这份配套指令补充了 GitHub 下载文件名的识别说明，原执行流程保持不变。
+项目指令也可[在线查看并复制全文](CHATGPT_PROJECT_INSTRUCTIONS.txt)。将全文保存到项目设置即可，执行流程保持不变。
 
-运行 ZIP 下载后的文件名是 `PPT-Rebuilder-King-ChatGPT-20261025.zip`。记住保存位置，**不要解压、不要改名，下一步直接把这一份 ZIP 上传到 ChatGPT。** 这个便于下载的 ASCII 附件是本版已认可原 ZIP 的字节复制，包内原名与身份保持不变；配套项目指令会说明文件名对应关系。
+运行 ZIP 下载后的文件名是 `PPT-Rebuilder-King-ChatGPT-20261105.zip`。记住保存位置，**不要解压、不要改名，下一步直接把这一份 ZIP 上传到 ChatGPT。** 本次仅精简发行内容，程序和生成规则保持不变。
 
-也可以打开 [本版 Releases 下载页](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.10.25-quality.1)，向下找到 **Assets（附件）** 并展开，下载上面对应的运行 ZIP 和项目指令 TXT。
+也可以打开 [本版 Releases 下载页](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.11.05-package.1)，向下找到 **Assets（附件）** 并展开，下载上面对应的运行 ZIP 和项目指令 TXT。
 
 这里需要的是已经打包完成的 **ChatGPT 运行 ZIP**。`Source code`、名字带 `source` 的源码 ZIP 和绿色 **Code → Download ZIP** 用于源码开发，普通使用无需下载，也不需要先解压其他外层交付包。
 
@@ -27,8 +27,8 @@
 
 ## ③ 上传 ZIP，设置项目指令
 
-1. 在项目「来源」上传刚下载的 `PPT-Rebuilder-King-ChatGPT-20261025.zip`，保持压缩状态。
-2. 打开配套的 `PPT-Rebuilder-King-20261025-PROJECT-INSTRUCTIONS.txt`，复制全文。
+1. 在项目「来源」上传刚下载的 `PPT-Rebuilder-King-ChatGPT-20261105.zip`，保持压缩状态。
+2. 打开配套的 `PPT-Rebuilder-King-20261105-PROJECT-INSTRUCTIONS.txt`，复制全文。
 3. 打开项目右上角的「项目设置」，将全文粘贴到「项目指令」并保存。
 
 确认来源里能看见 ZIP，项目指令也已经保存，再往下发图片。不要只上传 ZIP 而漏掉项目指令。
@@ -85,9 +85,9 @@
 
 ### 源码与运行包
 
-源码 ZIP 用于开发，不包含主运行包保留的已脱敏历史资料。开发者准备依赖后，可用 `tools/build_release.py` 在新目录生成开发重建包；它不替换上方已认可原 ZIP，也不承诺与主运行附件字节相同。开发命令见 [中文开发说明](../README.zh-CN.md#开发重建开发者使用)。
+源码 ZIP 用于开发；运行 ZIP 仅保留运行所需文件与必要许可，不携带开发工具、测试或历史资料。构建与校验说明见 [中文开发说明](../README.zh-CN.md#构建与校验开发者使用)。
 
-`verify_release.py` 仅支持开发重建格式，不用于官方冻结原 ZIP。冻结主包应核对公布的 SHA256 及内置两层文件清单，不要为适配开发工具而重打包或关闭校验。
+运行包根目录为 `PPT Rebuilder King`。内部程序身份仍为 `PPT Rebuilder King-20261025-quality-test`，供 `--expected-package` 和首次 CLI 回传核对。外层归档已重新打包，核对下载页的本版 SHA256 和两层文件清单；程序文件逐项保持不变不代表整个 ZIP 字节相同。
 
 最终运行 ZIP 解压后，程序入口为 `compat-runtime` 内的 `python -m newpath`；启动参数及本版身份以其中 SKILL 为准。作业目录必须在程序目录外。GitHub 仅提供当前版本。正在运行的作业不强制迁移，不复制旧 state 到新版本；维护者如需本地回退，仅让新作业使用已保留的本地旧包。
 

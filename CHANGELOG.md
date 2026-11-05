@@ -1,5 +1,11 @@
 # 变更记录
 
+## 2026.11.05-package.1 · 2026-11-05
+
+只调整发行结构：运行 ZIP 使用 `PPT-Rebuilder-King-ChatGPT-20261105.zip` 和根目录 `PPT Rebuilder King`，移除内部开发与历史材料，保留运行所需文件、项目指令、校验清单和必要许可。源码、配套指令与 SHA256SUMS 单独提供。
+
+`compat-runtime` 全部 423 个文件及内部 `PPT Rebuilder King-20261025-quality-test` 身份逐项保持不变；生成提示词、透明前景和生产流程不变。整个 ZIP 重新打包，不沿用旧归档哈希。本次没有新增还原质量、速度或 Office 验收；历史测试不计为本版新结果。
+
 ## 2026.10.25-quality.1 · 2026-10-25
 
 将维护者认可的组件与文字交付修复测试 ZIP 作为当前主下载，保留内部 `PPT Rebuilder King-20261025-quality-test` 身份；下载附件使用 ASCII 别名，ZIP 字节保持不变。GitHub 仅保留当前发行；维护者本地备份与历史提交保留。
