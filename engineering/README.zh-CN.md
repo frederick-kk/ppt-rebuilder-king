@@ -11,7 +11,7 @@ python -B -m unittest discover -s engineering/tests -v
 python -B -m unittest discover -s tools -p test_repack_runtime.py -v
 ```
 
-2026-10-25 的本地工程回归为 415 项（404 通过、11 跳过），当时提供了两个私有历史源码对照文件；同日独立解压源码回归为 429 项（418 通过、11 跳过、0 失败/错误），使用当时逐项核验的 393 个固定依赖文件。这些是历史环境的结果，不是本次发行整理新运行的统计。验证记录见 [仓库验收说明](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/docs/RELEASE_VALIDATION.zh-CN.md)。
+2026-10-25 的本地工程回归为 415 项（404 通过、11 跳过），测试另使用了两个历史源码对照文件；这两个文件未随当时源码归档分发。同日独立解压源码回归为 429 项（418 通过、11 跳过、0 失败/错误），使用当时逐项核验的 393 个固定依赖文件。这些是历史环境的结果，不是本次发行整理新运行的统计。验证记录见 [仓库验收说明](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/docs/RELEASE_VALIDATION.zh-CN.md)。
 
 记录本次实际操作系统、Python/Node/Pillow/NumPy、可用字体及通过/失败/错误/跳过明细。Windows 结果不代表 Linux 或不同字体通过；跨字体标尺问题见 [KNOWN_ISSUES](../KNOWN_ISSUES.md)。缺失的可选诊断不计为通过，不删除失败断言或伪造历史夹具。
 

@@ -31,7 +31,7 @@
     "skipped": 11,
     "failures": 0,
     "errors": 0,
-    "scope": "Historical local engineering validation with two historic source comparison files supplied privately; not rerun for this distribution-only revision.",
+    "scope": "Historical local engineering validation used two additional historical source comparison files, which were not included in that source archive; not rerun for this distribution-only revision.",
     "date": "2026-10-25"
   },
   "historical_source_validation": {
@@ -65,7 +65,7 @@
   },
   "distribution_validation": {
     "status": "passed",
-    "scope": "Archive inventories and path safety; unchanged 423-file runtime and fixed runtime manifest/snapshot; project instruction synchronization and legal notice presence.",
+    "scope": "Current 2026.11.05-package.1 attachment snapshot: inventories and path safety; unchanged 423-file runtime and fixed runtime manifest/snapshot; project instruction synchronization and legal notice presence.",
     "runtime_files_expected": 423,
     "runtime_manifest_sha256": "405898341da9631bdc5a60f5f7cf3ce04c2b3f02dc8a45756bc2f2381f1773ee",
     "runtime_source_snapshot_sha256": "bf24b73c1f5a47e1d4bc75ee77b214bdc8525009de61849a32b53e2d312379b6",
@@ -83,7 +83,7 @@
       "errors": 0,
       "new_repack_tests": 14,
       "existing_builder_tests": 13,
-      "scope": "Targeted packaging and legacy builder checks independently run for this revision."
+      "scope": "Targeted packaging and legacy builder checks rerun for the current 2026.11.05-package.1 attachment snapshot."
     },
     "checks": {
       "archive_crc": true,
@@ -94,35 +94,22 @@
       "source_payload_matches_checkout": true,
       "project_instruction_copies_identical": true,
       "external_checksums_verified": true,
-      "distribution_content_audit_passed": true,
-      "scope": "Finite distribution content, text and nested Office archive checks; not a claim of universal absence or rights certification."
+      "scope": "Current attachment CRC, payload hashes and sizes, all 423 runtime files byte for byte, original runtime manifest, source checkout, relative links, instruction copies and external checksum checks; not a new CLI, image-model, Office or timing run."
     },
     "artifacts": {
       "runtime": {
         "name": "PPT-Rebuilder-King-ChatGPT-20261105.zip",
-        "sha256": "938c7358c30360db4c7237a4f5138085d8518481ba9b0e0951a14ddb87cf0bb8",
+        "sha256": "4de26ffd0848f7ea40fc9e0b6333a6b6bdbe9ba301ed9eaecfa00f4229e888bc",
         "files": 452
       },
       "source": {
         "name": "PPT-Rebuilder-King-20261105-source.zip",
-        "sha256": "dc17e4043bf617e1f95b2b8c03d17ed7d48c8ad2d7d4ca11afec33664df4b34b",
+        "sha256": "5a1bfbf3befed775b4877527552ebb432fac7511938e7f1a48e65243a34c7449",
         "files": 133
       }
     },
-    "synthetic_cli_smoke": {
-      "status": "passed",
-      "runtime_source": "Newly extracted current runtime archive",
-      "terminal_phase": "done",
-      "cli_steps": 14,
-      "provider_image_calls": 0,
-      "editable_body_texts": 2,
-      "shape_elements_including_line": 4,
-      "line_elements": 1,
-      "artwork_pictures": 2,
-      "role_review": "Simulated host declarations with deterministic synthetic inputs",
-      "office_editing_performed": false,
-      "scope": "Real CLI and local native PPTX structure; not image-model fidelity, provider telemetry, end-to-end timing or Office editing certification."
-    }
+    "runtime_public_manifest_payloads_verified": 451,
+    "source_public_manifest_payloads_verified": 132
   },
   "historical_environment": {
     "os": "Windows 10",
@@ -130,5 +117,28 @@
     "node": "v22.21.0",
     "Pillow": "12.3.0",
     "NumPy": "2.2.6"
+  },
+  "historical_synthetic_cli_smoke": {
+    "status": "passed",
+    "runtime_source": "Fresh extraction of the previously published 2026.11.05-package.1 runtime archive",
+    "terminal_phase": "done",
+    "cli_steps": 14,
+    "provider_image_calls": 0,
+    "editable_body_texts": 2,
+    "shape_elements_including_line": 4,
+    "line_elements": 1,
+    "artwork_pictures": 2,
+    "role_review": "Simulated host declarations with deterministic synthetic inputs",
+    "office_editing_performed": false,
+    "scope": "Historical real CLI and local native PPTX structure check of the previously published snapshot; not rerun for the current attachment snapshot. The 423 runtime files and original runtime manifest are byte-identical. Not image-model fidelity, provider telemetry, end-to-end timing or Office editing certification.",
+    "date": "2026-11-05",
+    "runtime_archive_sha256": "938c7358c30360db4c7237a4f5138085d8518481ba9b0e0951a14ddb87cf0bb8"
+  },
+  "historical_distribution_content_audit": {
+    "status": "passed",
+    "date": "2026-11-05",
+    "runtime_archive_sha256": "938c7358c30360db4c7237a4f5138085d8518481ba9b0e0951a14ddb87cf0bb8",
+    "source_archive_sha256": "dc17e4043bf617e1f95b2b8c03d17ed7d48c8ad2d7d4ca11afec33664df4b34b",
+    "scope": "Finite distribution content, extracted text and nested Office archive checks of the previously published snapshot; not rerun for the current attachment snapshot and not a universal absence or rights certification."
   }
 }

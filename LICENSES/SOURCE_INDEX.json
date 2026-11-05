@@ -263,11 +263,11 @@
       "primary_tarball_sha256": "79a1de983c1b393180c47456d6b73caab278a00ea6e37d5c6675f2dcdec2a3e5"
     }
   ],
-  "omitted_metadata_only_dependency": {
+  "metadata_only_runtime_dependency": {
     "name": "https",
     "version": "1.0.0",
     "declared_license": "ISC",
-    "runtime_file_omitted": "compat-runtime/node_modules/https/package.json",
+    "runtime_archive_file": "compat-runtime/node_modules/https/package.json",
     "full_text_not_available_from_upstream": true,
     "details": "../dependency/SBOM.json"
   }

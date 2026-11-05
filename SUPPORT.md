@@ -1,6 +1,6 @@
 # 使用支持
 
-先阅读 [中文说明](README.zh-CN.md)、[使用说明](docs/USAGE.zh-CN.md)、[已知问题](KNOWN_ISSUES.md) 和 [验收范围](docs/RELEASE_VALIDATION.zh-CN.md)，确认运行 ZIP 与项目指令属于同一版本。
+先阅读 [中文说明](README.zh-CN.md)、[使用说明](docs/USAGE.zh-CN.md)、[已知问题](KNOWN_ISSUES.md) 和 [验收范围](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/docs/RELEASE_VALIDATION.zh-CN.md)，确认运行 ZIP 与项目指令属于同一版本。
 
 - **错误或结果异常**：使用 Bug 模板，说明触发步骤、预期与实际结果、版本、宿主和运行环境。
 - **功能建议**：使用 Feature 模板，说明要解决的具体问题，以及对效果、耗时和调用次数的影响。

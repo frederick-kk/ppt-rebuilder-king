@@ -2,7 +2,7 @@
 
 ## 维护范围
 
-当前维护及分发版本为 **2026.10.25-quality.1**。GitHub 仅保留当前发行，历史提交与变更记录供追溯；不承诺历史版本同步修复。发现问题时请说明版本及运行环境。当前预发行版仍需按 [已知问题](KNOWN_ISSUES.md) 和 [验收范围](docs/RELEASE_VALIDATION.zh-CN.md) 使用。
+当前维护及分发版本为 **2026.11.05-package.1**，内部程序身份为 `PPT Rebuilder King-20261025-quality-test`。发行页提供当前运行附件，历史提交与变更记录供追溯；不承诺历史版本同步修复。发现问题时请说明版本及运行环境。当前预发行版仍需按 [已知问题](KNOWN_ISSUES.md) 和 [验收范围](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/docs/RELEASE_VALIDATION.zh-CN.md) 使用。
 
 ## 报告疑似漏洞
 
