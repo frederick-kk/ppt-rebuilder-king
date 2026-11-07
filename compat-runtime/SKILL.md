@@ -10,7 +10,7 @@ description: 按当前图片制作对象可编辑单页PPT，按任务身份执�
 ## 从空目录启动
 
 ```text
-python -m newpath --work /absolute/new-job --source /absolute/current-image.png --expected-package "PPT Rebuilder King-20261025-quality-test"
+python -m newpath --work /absolute/new-job --source /absolute/current-image.png --expected-package "PPT Rebuilder King-20261107-components-r1"
 ```
 
 首次生图前核对CLI回传runtime_identity.package_id为本版身份；不匹配时读取本次新ZIP并启动正确目录。
@@ -47,6 +47,6 @@ python -m newpath --work /absolute/new-job
 
 标题按alpha>=2核心等比放入目标框，保留所有原RGBA（含alpha1、hidden RGB和原白色描边），紧矩形裁切；完整图片框可因淡边超出原框，四页工程边界不变。仅当真实alpha、确有透明空白、存在完整内缩alpha>1核心且触边全部为alpha1时，技术放行并警告，无需重画。alpha>1触边、无透明空白、假透明仍拒绝，不用补白或去色伪修。
 
-普通透明组件不按色抠像、不删连通块；有参考和各成员核心时按alpha>1识别几何，原RGBA全保留，先分列再分行。保留正常宽隔带路径，仅其失败且存在唯一2–5px真空带、相邻主体二维参考归属明确且没有核心跨线时恢复窄隔带并保存证据。无参考、多候选、真融合/切边仍拒绝，不强制把未知主体入稿。正确提取不代表模型没有附带装饰或光晕。
+普通透明组件不按色抠像、不删连通块；有参考和各成员核心时按alpha>1识别几何，原RGBA全保留，先分列再分行。原宽隔带存在多条候选时，程序仅对有参考、未归属、最大alpha≤3、单团≤8像素且整板累计≤64像素的微小碎点作局部几何复核，保留原切线并记录weak_native_grid_speck_tolerance；裁片继续保留全部原RGBA。继续保留原窄隔带规则：唯一2–5px真空带、相邻主体二维参考归属明确且没有核心跨线时恢复并保存证据。无参考、复核后仍有歧义、真融合/切边仍拒绝，不强制把未知主体入稿。正确提取不代表模型没有附带装饰或光晕。
 
 正文保留原文/字体/runs和原生编辑性，仅支持的水平普通行做有限宽度拟合，最大缩字号25%；缺匹配字体明确估算，ASCII数字估0.67em、普通ASCII空格估0.33em，其他沿用；实际匹配字体测量和25%字号下限保持。真实超预算不能假装已测量或任意缩小。文件写出和done是技术交付状态，不代表完整还原、真实计费次数或十分钟时效已验收。

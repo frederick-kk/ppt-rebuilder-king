@@ -1,8 +1,8 @@
 {
   "schema": "ppt-rebuilder.dependency-sbom/1",
   "format_note": "Project-specific machine-readable dependency inventory; not asserted to be an SPDX or CycloneDX conformance document.",
-  "release_id": "PPT Rebuilder King-20261025-quality-test",
-  "prepared_date": "2026-10-25",
+  "release_id": "PPT Rebuilder King-20261107-components-r1",
+  "prepared_date": "2026-11-08",
   "first_party": {
     "license": "MIT",
     "notice_file": "LICENSE",

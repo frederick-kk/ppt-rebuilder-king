@@ -11,6 +11,7 @@ from .matte import _regions
 
 _NARROW_UNCONFIRMED_COMPONENT_PX = 8
 _NARROW_UNCONFIRMED_TOTAL_PX = 64
+_WEAK_UNCONFIRMED_MAX_ALPHA = 3
 
 
 def _scaled_slot(slot, reference_size, actual_size):
@@ -38,7 +39,7 @@ def _reference_supports_group_gap(projection,reference,lo,hi,planned,gap,band,ra
 
 def _separators(projection, count, cell_size, margin, gap, scale,
                 reference=None,radius=0,supported=None,unconfirmed=None,narrow_accept=None,
-                owned_accept=None):
+                owned_accept=None,weak_accept=None):
     cuts, failed, ambiguous, changed = [], [], [], False
     for index in range(count-1):
         left_center = (margin + cell_size/2 + index*(cell_size+gap))*scale
@@ -70,6 +71,8 @@ def _separators(projection, count, cell_size, margin, gap, scale,
                 else:
                     recovered=None if owned_accept is None else owned_accept(
                         index,lo,hi,[(choice[-1],bands[choice[-1]]) for choice in choices])
+                    if recovered is None and weak_accept is not None:
+                        recovered=weak_accept(index,lo,hi,planned,cut,minimum)
                     if recovered is None:ambiguous.append(index)
                     else:
                         cut=recovered
@@ -154,13 +157,84 @@ def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = 
         # inside exactly one planned member, including faint/disconnected marks.
         confirmed=[label for label,identities in owners.items() if len(identities)==1]
         unconfirmed=occupied&~np.isin(labels,confirmed)
+    weak_occupied=None
+    weak_labels=[]
+    weak_max_alpha={}
+    eligible_pixels=0
+    if local_rows:
+        region_pixels=np.bincount(labels.ravel())
+        for region in regions:
+            label=region['id']
+            if owners.get(label) or region_pixels[label]>_NARROW_UNCONFIRMED_COMPONENT_PX:
+                continue
+            a,b,c,d=region['box']
+            values=pixels[b:d,a:c][labels[b:d,a:c]==label]
+            if int(values.max())<=_WEAK_UNCONFIRMED_MAX_ALPHA:
+                weak_labels.append(label)
+                weak_max_alpha[label]=int(values.max())
+        eligible_pixels=sum(int(region_pixels[label]) for label in weak_labels)
+        if 0<eligible_pixels<=_NARROW_UNCONFIRMED_TOTAL_PX:
+            weak_mask=np.isin(labels,weak_labels)
+            weak_occupied=occupied&~weak_mask
+            weak_unconfirmed=unconfirmed&~weak_mask
     radius=max(2,math.ceil(min(cell_width*width/reference_size[0],
                               cell_height*height/reference_size[1])/28))
+
+    def weak_acceptor(axis,column=None,x_bounds=None):
+        if weak_occupied is None:return None
+        # Retrying a disputed gutter changes only its geometric evidence.
+        # Original occupancy still controls ownership, edges and image output.
+        if axis=='x':
+            projection=weak_occupied.any(axis=0)
+            reference_projection=reference.any(axis=0)
+            unconfirmed_projection=weak_unconfirmed.any(axis=0)
+            local_labels=labels
+            scaled_gap=gap*width/reference_size[0]
+        else:
+            x0,x1=x_bounds
+            projection=weak_occupied[:,x0:x1].any(axis=1)
+            reference_projection=reference[:,x0:x1].any(axis=1)
+            unconfirmed_projection=weak_unconfirmed[:,x0:x1].any(axis=1)
+            local_labels=labels[:,x0:x1]
+            scaled_gap=gap*height/reference_size[1]
+
+        def accept(index,lo,hi,planned,cut,minimum):
+            empty=~projection[lo:hi]
+            changes=np.flatnonzero(np.diff(np.pad(empty.astype(np.int8),(1,1))))
+            bands=[(lo+int(start),lo+int(stop)) for start,stop in changes.reshape(-1,2)
+                   if stop-start>=minimum]
+            if len(bands)!=1:return None
+            start,stop=bands[0]
+            if not start<=cut<stop:return None
+            if not _reference_supports_group_gap(projection,reference_projection,lo,hi,
+                    planned,scaled_gap,(start,stop),radius,unconfirmed_projection):
+                return None
+            search=local_labels[:,lo:hi] if axis=='x' else local_labels[lo:hi]
+            involved=np.intersect1d(np.unique(search),weak_labels)
+            if not len(involved):return None
+            sizes=[int(region_pixels[label]) for label in involved]
+            note={'policy':'bounded-weak-native-gutter/1','axis':axis,'index':index,
+                  'band':[start,stop],'cut':cut,'unconfirmed_components_in_search':len(sizes),
+                  'unconfirmed_core_pixels':sum(sizes),
+                  'max_unconfirmed_component_core_pixels':max(sizes),
+                  'eligible_board_core_pixels':eligible_pixels,
+                  'unconfirmed_component_budget_px':_NARROW_UNCONFIRMED_COMPONENT_PX,
+                  'unconfirmed_total_budget_px':_NARROW_UNCONFIRMED_TOTAL_PX,
+                  'max_unconfirmed_alpha':max(weak_max_alpha[int(label)] for label in involved),
+                  'unconfirmed_alpha_limit':_WEAK_UNCONFIRMED_MAX_ALPHA,
+                  'identity_quality':'not_evaluated','all_rgba_pixels_preserved':True}
+            if column is not None:note['column']=column
+            result.setdefault('weak_speck_gutter_recoveries',[]).append(note)
+            result['warnings'].append({'code':'weak_native_grid_speck_tolerance',**note})
+            return cut
+        return accept
+
     supported_x=[];supported_y=[]
     vertical,bad_columns,ambiguous_columns,changed_x = _separators(occupied.any(axis=0),columns,cell_width,
                                                margin,gap,width/reference_size[0],
                                                None if reference is None else reference.any(axis=0),radius,supported_x,
-                                               None if unconfirmed is None else unconfirmed.any(axis=0))
+                                               None if unconfirmed is None else unconfirmed.any(axis=0),
+                                               weak_accept=weak_acceptor('x'))
     horizontal,bad_rows,ambiguous_rows,changed_y = _separators(occupied.any(axis=1),rows,cell_height,
                                               margin,gap,height/reference_size[1],
                                               None if reference is None else reference.any(axis=1),radius,supported_y,
@@ -270,7 +344,8 @@ def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = 
                               margin,gap,height/reference_size[1],
                               reference[:,x0:x1].any(axis=1),radius,supported,
                               None if unconfirmed is None else unconfirmed[:,x0:x1].any(axis=1),
-                              narrow_accept=accept_narrow,owned_accept=accept_owned)
+                              narrow_accept=accept_narrow,owned_accept=accept_owned,
+                              weak_accept=weak_acceptor('y',column,(x0,x1)))
             column_rows[column]=local
             changed_y=changed_y or local[3]
             result.setdefault('column_row_cuts',{})[str(column)]=list(local[0])

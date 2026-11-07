@@ -17,6 +17,10 @@ def verify(path):
         if len(roots)!=1 or z.testzip() is not None:raise ValueError('Archive root/CRC invalid')
         prefix=next(iter(roots))+'/'
         manifest=json.loads(z.read(prefix+'PACKAGE_MANIFEST.json'))
+        if manifest.get('format')=='ppt-rebuilder.quality-test/1':
+            try:from .repack_runtime import verify_complete_archive
+            except ImportError:from repack_runtime import verify_complete_archive
+            return verify_complete_archive(path)
         if manifest.get('format')!='ppt-rebuilder.public-package/1':raise ValueError('Unsupported public manifest')
         def inspect(base,rows,excluded):
             declared={base+r['path'] for r in rows}

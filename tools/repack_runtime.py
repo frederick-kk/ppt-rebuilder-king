@@ -25,6 +25,13 @@ RUNTIME_COUNT = 423
 ARCHIVE_ROOT = 'PPT Rebuilder King'
 RUNTIME_NAME = 'PPT-Rebuilder-King-ChatGPT-20261105.zip'
 SOURCE_NAME = 'PPT-Rebuilder-King-20261105-source.zip'
+COMPLETE_ARCHIVE_SHA256 = 'c275767c70dacf8ce0ed05db975eb6e91d32a09bcc558c92d08339d90daab688'
+COMPLETE_ARCHIVE_ROOT = 'PPT Rebuilder King-20261107-components-r1'
+COMPLETE_ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip'
+COMPLETE_ARCHIVE_MEMBERS = 779
+COMPLETE_RUNTIME_MANIFEST_SHA256 = 'bd6ab24b6f87218e55d8b2dcf5e4ff0410859683944cac00654fab4aa9042d40'
+COMPLETE_RUNTIME_SNAPSHOT_SHA256 = '73a64dc1d78f60cfc2900086a42c3605f8ffa08998ad518e958f2da3841487ac'
+COMPLETE_RUNTIME_COUNT = 423
 RUNTIME_DOCS = frozenset({
     'PROJECT_INSTRUCTIONS.txt', 'README.zh-CN.md', 'LICENSE', 'NOTICE.md',
     'THIRD_PARTY_LICENSES.md', 'KNOWN_ISSUES.md', 'RELEASE.json',
@@ -110,23 +117,23 @@ def read_archive(path):
         return {i.filename: archive.read(i) for i in members}
 
 
-def validate_runtime(runtime):
-    if len(runtime) != RUNTIME_COUNT:
+def _validate_runtime(runtime, count, manifest_sha256, snapshot_sha256, identity):
+    if len(runtime) != count:
         raise ValueError('Approved runtime inventory count differs')
     raw = runtime.get('MANIFEST.json', b'')
-    if sha(raw) != RUNTIME_MANIFEST_SHA256:
+    if sha(raw) != manifest_sha256:
         raise ValueError('Approved runtime manifest differs')
     manifest = json.loads(raw)
     rows = manifest['files']
     if (manifest.get('format') != 'newpath.package-manifest/1'
-            or manifest.get('package_id') != BASELINE_ROOT
+            or manifest.get('package_id') != identity
             or manifest.get('source_file_count') != len(rows)
-            or len(rows) != RUNTIME_COUNT - 1):
+            or len(rows) != count - 1):
         raise ValueError('Approved runtime identity/inventory differs')
     canonical = json.dumps(rows, ensure_ascii=False, sort_keys=True,
                            separators=(',', ':')).encode('utf-8')
-    if (sha(canonical) != RUNTIME_SNAPSHOT_SHA256
-            or manifest.get('source_snapshot_sha256') != RUNTIME_SNAPSHOT_SHA256):
+    if (sha(canonical) != snapshot_sha256
+            or manifest.get('source_snapshot_sha256') != snapshot_sha256):
         raise ValueError('Approved runtime snapshot differs')
     declared = set()
     for row in rows:
@@ -140,6 +147,65 @@ def validate_runtime(runtime):
             raise ValueError('Approved runtime member differs: ' + name)
     if declared != {n.casefold() for n in runtime if n != 'MANIFEST.json'}:
         raise ValueError('Approved runtime manifest inventory differs')
+
+
+def validate_runtime(runtime):
+    _validate_runtime(runtime, RUNTIME_COUNT, RUNTIME_MANIFEST_SHA256,
+                      RUNTIME_SNAPSHOT_SHA256, BASELINE_ROOT)
+
+
+def complete_archive(path):
+    """Validate the one approved complete download before preserving its bytes."""
+    path = Path(path)
+    if path.stat().st_size > 512_000_000 or sha(path.read_bytes()) != COMPLETE_ARCHIVE_SHA256:
+        raise ValueError('Complete archive differs from the approved download')
+    files = read_archive(path)
+    prefix = COMPLETE_ARCHIVE_ROOT + '/'
+    if len(files) != COMPLETE_ARCHIVE_MEMBERS or any(not n.startswith(prefix) for n in files):
+        raise ValueError('Complete archive root or inventory differs')
+    data = {name[len(prefix):]: body for name, body in files.items()}
+    manifest = json.loads(data['PACKAGE_MANIFEST.json'])
+    if (manifest.get('format') != 'ppt-rebuilder.quality-test/1'
+            or manifest.get('package_id') != COMPLETE_ARCHIVE_ROOT
+            or manifest.get('archive_name') != COMPLETE_ARCHIVE_NAME
+            or manifest.get('runtime_manifest_sha256') != COMPLETE_RUNTIME_MANIFEST_SHA256):
+        raise ValueError('Complete archive identity differs')
+    declared = set()
+    for row in manifest['files']:
+        name = row['path']
+        safe_member(name)
+        if name.casefold() in declared or name == 'PACKAGE_MANIFEST.json':
+            raise ValueError('Complete archive manifest has duplicate or self records')
+        declared.add(name.casefold())
+        body = data.get(name)
+        if body is None or len(body) != row['size'] or sha(body) != row['sha256']:
+            raise ValueError('Complete archive manifest content differs: ' + name)
+    if declared != {name.casefold() for name in data if name != 'PACKAGE_MANIFEST.json'}:
+        raise ValueError('Complete archive manifest inventory differs')
+    runtime = {name[len('compat-runtime/'):]: body for name, body in data.items()
+               if name.startswith('compat-runtime/')}
+    _validate_runtime(runtime, COMPLETE_RUNTIME_COUNT, COMPLETE_RUNTIME_MANIFEST_SHA256,
+                      COMPLETE_RUNTIME_SNAPSHOT_SHA256, COMPLETE_ARCHIVE_ROOT)
+    for name, body in data.items():
+        if name.startswith('compat-runtime/node_modules/'):
+            continue
+        if name.endswith(('.md', '.txt', '.json')):
+            try:
+                body.decode('utf-8')
+            except UnicodeDecodeError:
+                body = body.decode('gb18030').encode('utf-8')
+        check_text(name, body)
+    return data, runtime
+
+
+def verify_complete_archive(path):
+    data, runtime = complete_archive(path)
+    return {'valid': True, 'kind': 'runtime', 'files': len(data),
+            'sha256': sha(Path(path).read_bytes()),
+            'runtime_files_compared': len(runtime),
+            'runtime_manifest_sha256': sha(runtime['MANIFEST.json']),
+            'complete_archive_byte_identical_to_approved_download': True,
+            'scope': 'Pinned complete archive, both inventories and hashes, bounded public privacy checks.'}
 
 
 def approved_runtime(baseline):
@@ -288,6 +354,12 @@ def public_runtime(files):
 
 
 def verify_runtime(baseline, runtime_archive):
+    if sha(Path(baseline).read_bytes()) == COMPLETE_ARCHIVE_SHA256:
+        complete_archive(baseline)
+        result = verify_complete_archive(runtime_archive)
+        if Path(baseline).read_bytes() != Path(runtime_archive).read_bytes():
+            raise ValueError('Complete archive bytes differ from the approved download')
+        return result
     expected = approved_runtime(baseline)
     result = verify_public(Path(runtime_archive))
     actual = public_runtime(read_archive(runtime_archive))
@@ -316,6 +388,67 @@ def verify_source(source_archive):
     return result
 
 
+def build_complete(baseline, public_source, output):
+    """Copy the approved download and build the public source archive separately."""
+    data, runtime = complete_archive(baseline)
+    meta = json.loads(public_source['RELEASE.json'])
+    approved = meta.get('approved_artifact', {})
+    runtime_meta = meta.get('runtime', {})
+    if (meta.get('package_id') != COMPLETE_ARCHIVE_ROOT
+            or meta.get('archive_root') != COMPLETE_ARCHIVE_ROOT
+            or meta.get('archive_name') != COMPLETE_ARCHIVE_NAME
+            or meta.get('source_archive_root') != ARCHIVE_ROOT + '-source'
+            or approved.get('sha256') != COMPLETE_ARCHIVE_SHA256
+            or approved.get('bytes') != Path(baseline).stat().st_size
+            or approved.get('members') != COMPLETE_ARCHIVE_MEMBERS
+            or approved.get('archive_root') != COMPLETE_ARCHIVE_ROOT
+            or runtime_meta.get('files') != COMPLETE_RUNTIME_COUNT
+            or runtime_meta.get('manifest_sha256') != COMPLETE_RUNTIME_MANIFEST_SHA256
+            or runtime_meta.get('source_snapshot_sha256') != COMPLETE_RUNTIME_SNAPSHOT_SHA256):
+        raise ValueError('Complete archive release metadata differs')
+    missing = (RUNTIME_DOCS | RUNTIME_LEGAL_FILES) - public_source.keys()
+    if missing:
+        raise ValueError('Missing required public document: ' + ', '.join(sorted(missing)))
+    for name, body in runtime.items():
+        if name != 'MANIFEST.json' and not name.startswith('node_modules/'):
+            if public_source.get('compat-runtime/' + name) != body:
+                raise ValueError('Public source differs from approved runtime: ' + name)
+    if public_source['PROJECT_INSTRUCTIONS.txt'] != data['PROJECT_INSTRUCTIONS.txt']:
+        raise ValueError('Project instructions differ from approved complete archive')
+    names = [meta['archive_name'], meta['source_archive_name'],
+             meta['project_instructions_name'], meta['sha256sums_name']]
+    if (len({name.casefold() for name in names}) != len(names)
+            or any(len(safe_member(name)) != 1 for name in names)
+            or not meta['source_archive_name'].endswith('.zip')):
+        raise ValueError('Unsafe or colliding complete release filenames')
+    source_data = dict(public_source)
+    source_data['PACKAGE_MANIFEST.json'] = encoded({
+        'format': 'ppt-rebuilder.public-package/1', 'kind': 'source',
+        'package_id': COMPLETE_ARCHIVE_ROOT, 'archive_root': ARCHIVE_ROOT + '-source',
+        'version': meta['version'], 'runtime_dependencies_bundled': False,
+        'runtime_origin_archive_sha256': COMPLETE_ARCHIVE_SHA256,
+        'runtime_manifest_sha256': COMPLETE_RUNTIME_MANIFEST_SHA256,
+        'runtime_source_snapshot_sha256': COMPLETE_RUNTIME_SNAPSHOT_SHA256,
+        'files': inventory(source_data),
+    })
+    output.mkdir(parents=True, exist_ok=False)
+    runtime_path, source_path, instructions_path, sums_path = [output / name for name in names]
+    with runtime_path.open('xb') as stream:
+        stream.write(Path(baseline).read_bytes())
+    pack(source_path, ARCHIVE_ROOT + '-source', source_data, int(meta['source_date_epoch']))
+    runtime_check = verify_runtime(baseline, runtime_path)
+    source_check = verify_source(source_path)
+    with instructions_path.open('xb') as stream:
+        stream.write(data['PROJECT_INSTRUCTIONS.txt'])
+    sums = ''.join(sha(path.read_bytes()) + '  ' + path.name + '\n'
+                   for path in (runtime_path, source_path, instructions_path))
+    with sums_path.open('xb') as stream:
+        stream.write(sums.encode('utf-8'))
+    return {'runtime': str(runtime_path), 'source': str(source_path),
+            'instructions': str(instructions_path), 'checksums': str(sums_path),
+            'runtime_check': runtime_check, 'source_check': source_check}
+
+
 def build(baseline, source, output):
     baseline = Path(baseline).resolve()
     source = Path(source).resolve()
@@ -324,8 +457,11 @@ def build(baseline, source, output):
         raise FileExistsError('Build output already exists; use a new directory')
     if output.is_relative_to(source) or source.is_relative_to(output) or baseline.is_relative_to(output):
         raise ValueError('Build output must be outside source and baseline inputs')
-    runtime = approved_runtime(baseline)
     public_source = read_source(source)
+    meta = json.loads(public_source['RELEASE.json'])
+    if meta.get('distribution_mode') == 'approved-complete-archive':
+        return build_complete(baseline, public_source, output)
+    runtime = approved_runtime(baseline)
     missing = (RUNTIME_DOCS | RUNTIME_LEGAL_FILES) - public_source.keys()
     if missing:
         raise ValueError('Missing required public document: ' + ', '.join(sorted(missing)))

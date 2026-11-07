@@ -1,12 +1,12 @@
 {
   "schema": "ppt-rebuilder.release/1",
-  "version": "2026.11.05-package.1",
-  "release_date": "2026-11-05",
-  "package_id": "PPT Rebuilder King-20261025-quality-test",
-  "archive_name": "PPT-Rebuilder-King-ChatGPT-20261105.zip",
-  "source_archive_name": "PPT-Rebuilder-King-20261105-source.zip",
-  "source_date_epoch": 1793836800,
-  "status": "distribution-only",
+  "version": "2026.11.07-components.r1",
+  "release_date": "2026-11-08",
+  "package_id": "PPT Rebuilder King-20261107-components-r1",
+  "archive_name": "PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip",
+  "source_archive_name": "PPT-Rebuilder-King-20261107-components-r1-source.zip",
+  "source_date_epoch": 1794096000,
+  "status": "current",
   "working_pixels": [
     1920,
     1080
@@ -21,30 +21,32 @@
   "copyright": "Copyright (c) 2026 FrederikKK / frederick-kk",
   "approved_artifact": {
     "release_tag": "v2026.11.05-package.1",
-    "download_name": "PPT-Rebuilder-King-ChatGPT-20261105.zip",
-    "archive_root": "PPT Rebuilder King",
-    "sha256": null,
-    "bytes": null,
-    "members": null,
-    "policy": "Distribution-only repackaging. Preserve every compat-runtime file byte for byte; the outer archive is newly built. Whole-archive hashes are published in the external SHA256SUMS attachment."
+    "download_name": "PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip",
+    "archive_root": "PPT Rebuilder King-20261107-components-r1",
+    "sha256": "c275767c70dacf8ce0ed05db975eb6e91d32a09bcc558c92d08339d90daab688",
+    "bytes": 3106872,
+    "members": 779,
+    "policy": "The runtime attachment is the reviewed complete archive, copied without modification. Verify the external SHA256SUMS attachment.",
+    "tested_package_sha256": "d93bd91aec9f45e47dbe80852da13acccf0b20d863b9257e23df93e1480ab4b3"
   },
-  "archive_root": "PPT Rebuilder King",
+  "archive_root": "PPT Rebuilder King-20261107-components-r1",
   "source_archive_root": "PPT Rebuilder King-source",
-  "project_instructions_name": "PPT-Rebuilder-King-20261105-PROJECT-INSTRUCTIONS.txt",
-  "sha256sums_name": "PPT-Rebuilder-King-20261105-SHA256SUMS.txt",
+  "project_instructions_name": "PPT-Rebuilder-King-20261107-components-r1-PROJECT-INSTRUCTIONS.txt",
+  "sha256sums_name": "PPT-Rebuilder-King-20261107-components-r1-SHA256SUMS.txt",
   "runtime": {
-    "package_id": "PPT Rebuilder King-20261025-quality-test",
+    "package_id": "PPT Rebuilder King-20261107-components-r1",
     "directory": "compat-runtime",
     "files": 423,
-    "manifest_sha256": "405898341da9631bdc5a60f5f7cf3ce04c2b3f02dc8a45756bc2f2381f1773ee",
-    "source_snapshot_sha256": "bf24b73c1f5a47e1d4bc75ee77b214bdc8525009de61849a32b53e2d312379b6",
-    "byte_identical_to_20261025_runtime": true
+    "manifest_sha256": "bd6ab24b6f87218e55d8b2dcf5e4ff0410859683944cac00654fab4aa9042d40",
+    "source_snapshot_sha256": "73a64dc1d78f60cfc2900086a42c3605f8ffa08998ad518e958f2da3841487ac",
+    "byte_identical_to_approved_runtime": true
   },
   "distribution": {
-    "runtime_includes": "Runtime files, dependencies, workflow, project instructions, manifests and required legal notices.",
-    "runtime_excludes": "Development tools, tests, internal development and historical materials.",
+    "runtime_includes": "Reviewed complete archive with runtime files, dependencies, workflow, project instructions and supporting engineering material.",
+    "runtime_excludes": "Live user jobs, personal handoff notes and private test captures.",
     "source_includes": "Source, developer documentation, build tools, tests and public synthetic examples.",
-    "runtime_behavior_changed": false,
+    "runtime_behavior_changed": true,
     "generation_prompt_changed": false
-  }
+  },
+  "distribution_mode": "approved-complete-archive"
 }

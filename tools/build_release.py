@@ -81,7 +81,8 @@ def build(source,output):
         raise ValueError('Build output must be a new directory outside source')
     if output.exists():raise FileExistsError('Build output already exists')
     meta=json.loads((source/'RELEASE.json').read_text(encoding='utf-8'));identity=meta['package_id']
-    if meta.get('archive_root')=='PPT Rebuilder King' and meta.get('runtime'):
+    if (meta.get('distribution_mode')=='approved-complete-archive'
+            or meta.get('archive_root')=='PPT Rebuilder King' and meta.get('runtime')):
         raise ValueError('This release preserves approved runtime bytes. Use tools/repack_runtime.py build --baseline <approved-archive.zip> --source <repository> --output <new-directory>; do not rebuild the runtime manifest.')
     if not re.fullmatch(r'[A-Za-z0-9 _.-]+',identity) or '..' in identity:raise ValueError('Unsafe package identity')
     for field in ['archive_name','source_archive_name']:

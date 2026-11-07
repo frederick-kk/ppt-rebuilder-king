@@ -2,12 +2,12 @@
 
 将单页截图重建为对象可编辑的 PowerPoint：普通正文和支持的基础图形使用原生对象，艺术字、图标、纸卡及复杂插画使用独立图片。工作空间为 1920×1080，辅助尺为 25/50/5；辅助尺用于定位，不让对象吸附网格。
 
-本版仅整理发行结构：普通运行包移除开发工具、测试与历史资料，保留必要运行和许可文件。`compat-runtime` 的 423 个文件、内部身份、生成提示词和控制流程保持不变；整个 ZIP 已重新打包，不是旧 ZIP 的字节副本。
+本版提供完整 ChatGPT 运行附件，包含运行程序、依赖、工作流、项目指令和配套工程资料。下载后按本版 SHA256 与两层文件清单核对。
 
 ## 下载后直接上传 ChatGPT
 
-- **[① 下载运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-ChatGPT-20261105.zip)**
-- **[② 查看 / 下载配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261105-PROJECT-INSTRUCTIONS.txt)**
+- **[① 下载运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip)**
+- **[② 查看 / 下载配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261107-components-r1-PROJECT-INSTRUCTIONS.txt)**
 
 运行 ZIP 下载后 **不用解压或改名，直接整包上传到 ChatGPT 网页版项目的「来源」**。配套指令也可 [在线查看](docs/CHATGPT_PROJECT_INSTRUCTIONS.txt)，打开 Raw 后复制全文。
 
@@ -28,25 +28,25 @@
 
 | 制品 | 用途 | 内容 |
 |---|---|---|
-| [ChatGPT 运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-ChatGPT-20261105.zip) | 整包上传 ChatGPT 项目「来源」 | 运行程序、依赖、SKILL、项目指令、校验清单和必要许可说明 |
-| [项目指令 TXT](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261105-PROJECT-INSTRUCTIONS.txt) | 复制到项目设置 | 同版本项目运行指令 |
-| [源码 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261105-source.zip) | 阅读、开发、测试及构建 | 源码、锁文件、工程测试、构建工具和公开合成示例；不携带 `node_modules` 或私有诊断资料 |
-| [SHA256SUMS](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261105-SHA256SUMS.txt) | 校验下载文件 | 本版附件的 SHA256 |
+| [ChatGPT 运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip) | 整包上传 ChatGPT 项目「来源」 | 运行程序、依赖、SKILL、项目指令、校验清单和配套工程资料 |
+| [项目指令 TXT](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261107-components-r1-PROJECT-INSTRUCTIONS.txt) | 复制到项目设置 | 同版本项目运行指令 |
+| [源码 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261107-components-r1-source.zip) | 阅读、开发、测试及构建 | 源码、锁文件、工程测试、构建工具和公开合成示例；不携带 `node_modules` 或私有诊断资料 |
+| [SHA256SUMS](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261107-components-r1-SHA256SUMS.txt) | 校验下载文件 | 本版附件的 SHA256 |
 
-运行包解压根目录为 `PPT Rebuilder King`，执行入口是 `compat-runtime`。CLI 的 `--expected-package` 和 `runtime_identity.package_id` 仍使用 `PPT Rebuilder King-20261025-quality-test`；这是保留的程序身份，公开发行版本为 `2026.11.05-package.1`。每次输入使用程序目录之外的新作业目录，后续继续同一目录并保留已有回图，不复制旧 state 到新作业。
+运行包解压根目录为 `PPT Rebuilder King-20261107-components-r1`，执行入口是 `compat-runtime`。CLI 的 `--expected-package` 和 `runtime_identity.package_id` 使用 `PPT Rebuilder King-20261107-components-r1`，发行版本为 `2026.11.07-components.r1`。每次输入使用程序目录之外的新作业目录，后续继续同一目录并保留已有回图。
 
 ## 构建与校验（开发者使用）
 
-使用 `tools/repack_runtime.py` 从固定基线归档重新打包，在源码目录外指定新的输出目录：
+使用 `tools/repack_runtime.py` 读取已审定完整归档，在源码目录外指定新的输出目录。运行 ZIP 保留该归档字节，源码 ZIP 独立构建。
 
 ```text
-python tools/repack_runtime.py build --baseline ../downloads/PPT-Rebuilder-King-ChatGPT-20261105.zip --source . --output ../package-dist
-python tools/repack_runtime.py verify --baseline ../downloads/PPT-Rebuilder-King-ChatGPT-20261105.zip --runtime ../package-dist/PPT-Rebuilder-King-ChatGPT-20261105.zip --source-archive ../package-dist/PPT-Rebuilder-King-20261105-source.zip
+python tools/repack_runtime.py build --baseline ../downloads/PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip --source . --output ../package-dist
+python tools/repack_runtime.py verify --baseline ../downloads/PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip --runtime ../package-dist/PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip --source-archive ../package-dist/PPT-Rebuilder-King-20261107-components-r1-source.zip
 ```
 
 先下载本版运行 ZIP 作为基线，示例放在源码目录外的 `../downloads/`。构建工具核对该归档的公开清单，以及固定的内部运行清单、快照和全部 423 个文件；不从当前源码重新生成运行文件，也不需要重新安装 npm 依赖。源码开发所需 Python、Node.js 和相关依赖另行准备。运行发行以原运行文件为基线，逐项核对全部 423 个文件；不得为更换外层目录或公开版本号而修改内部程序身份、代码、SKILL、依赖或 `MANIFEST.json`。运行清单 SHA256 为 `405898341da9631bdc5a60f5f7cf3ce04c2b3f02dc8a45756bc2f2381f1773ee`，运行快照 SHA256 为 `bf24b73c1f5a47e1d4bc75ee77b214bdc8525009de61849a32b53e2d312379b6`。
 
-外层包和源码包使用各自文件清单，下载后可核对公布的 SHA256。重新打包会改变整个 ZIP 的哈希；内部程序文件不变与整个归档字节相同是不同的校验范围。
+运行包和源码包使用各自文件清单。下载后可核对公布的 SHA256，运行包还可核对 `RELEASE.json` 中记录的归档、运行清单与源码快照指纹。
 
 ## 能力与限制
 
