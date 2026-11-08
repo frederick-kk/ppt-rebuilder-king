@@ -1,6 +1,7 @@
 """Substrate-only prompt contracts, no image service."""
 import importlib.util
 import inspect
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -43,12 +44,21 @@ class NativePromptContracts(unittest.TestCase):
         self.assertIn('TITLE',text)
         self.assertIn('white',text.lower())
 
-    def test_background_title_and_explicit_legacy_briefs_remain_identical(self):
+    def test_shared_layer_policy_and_nonphoto_legacy_board_title_briefs(self):
         root=Path(__file__).resolve().parent/'fixtures/grid25-baseline/newpath/prompts.py'
         spec=importlib.util.spec_from_file_location('_base_native_prompt_contract',root)
         baseline=importlib.util.module_from_spec(spec);spec.loader.exec_module(baseline)
-        self.assertEqual(layer_brief('background',TRANSFORM),baseline.layer_brief('background',TRANSFORM))
-        self.assertEqual(layer_brief('foreground',TRANSFORM),baseline.layer_brief('foreground',TRANSFORM))
+        for role in ('background','foreground'):
+            legacy=layer_brief(role,TRANSFORM)
+            native=layer_brief(role,TRANSFORM,background_mode=MODE)
+            marker=role.capitalize()+' task: '
+            self.assertIn(marker,legacy)
+            self.assertIn(marker,native)
+            self.assertEqual(legacy.split(marker,1)[0],native.split(marker,1)[0])
+            self.assertEqual(json.loads(legacy.split('Geometry: ',1)[1]),
+                             {'working_pixels':[1920,1080],'content_offset':[0,0],'content_size':[1920,1080]})
+            self.assertEqual(json.loads(native.split('Geometry: ',1)[1]),
+                             {'working_pixels':[1920,1080],'content_offset':[0,0],'content_size':[1920,1080]})
         for key in ('magenta','green','cyan','yellow'):
             self.assertEqual(board_brief(board(key)),baseline.board_brief(board(key)))
         title={'id':'title','box':[10,10,1200,100],'lettering':'TITLE','description':'brush lettering'}

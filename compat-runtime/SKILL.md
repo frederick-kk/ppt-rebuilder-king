@@ -1,49 +1,58 @@
 ---
 name: ppt-rebuilder-king-chatgpt
-description: 按当前图片制作对象可编辑单页PPT，按任务身份执行和登记真实回图。
+description: 按当前页面图片重建对象可编辑单页PPT，使用任务回执连续完成素材与原生对象组装。
 ---
 
 # PPT Rebuilder King
 
-本版只处理用户本次指定图片；解压后使用本目录，不查找历史作业或全局Skill。需要已有Python、Pillow、NumPy、Node和能接收参考图、生成真实alpha的图像工具；能力缺失如实报告，不自动安装或编造输出。
+使用本次ZIP的compat-runtime。作业目录放在程序目录外，只处理用户明确指定的当前图片。需要已有Python、Pillow、NumPy、Node，以及支持参考图片和真实PNG透明通道的图像工具。
 
-## 从空目录启动
+## 启动
 
 ```text
-python -m newpath --work /absolute/new-job --source /absolute/current-image.png --expected-package "PPT Rebuilder King-20261107-components-r1"
+python -m newpath --work /absolute/new-job --source /absolute/current-image.png --expected-package "PPT Rebuilder King-20261108-flow-r1"
 ```
 
-首次生图前核对CLI回传runtime_identity.package_id为本版身份；不匹配时读取本次新ZIP并启动正确目录。
+程序核验运行文件并返回runtime_identity。新CLI作业采用bounded-recovery/1。后续始终继续同一作业目录，读取当前动作执行到done。旧作业使用其原包和已冻结策略。
 
-作业放在compat-runtime之外。同一图片始终继续该目录，不新建目录绕过暂停；旧版作业不迁移。新CLI冻结本地版本、调用策略、提示词审计和reviewed-existing-output/1交付策略。恢复会核对清单与保存身份。
+## 页面分层
 
-## 单次流程
+自然融合在整幅场景中的人物、车辆、建筑、植物留在背景。独立照片、屏幕截图、扫描件和拼贴图作为完整矩形前景保留，面积大或没有边框也按页面角色处理。图片内部的文字、标志和人物留在图片里，不能拆成页面正文或主标题。背景任务移除这些独立图片区块并补齐底图，前景任务保留其完整位置、边界和内部内容，不做雾化融景。
 
-1. `generate`仅是准备任务。逐项读取该任务的prompt_file原文，复制begin_template填实际工具名/参数；不得改写或压缩prompt，不得重用上一任务参数。提交后仅首次`invoke_once`许可该项一次调用，按其request真实传入有序参考图、尺寸、透明参数与一张结果要求。能取得真实工具参数才写tool_arguments，不能记录密钥、Authorization或Base64。
-2. 每份回图先保存，再在同一回合实际查看，与**当前task的角色和成员**核对，填写程序模板role_review与真实PNG的output_sha256，并带回本次request_sha256。不得按“最近一张图”绑定，不拿caption当执行prompt，也不能复制prompt作为看图描述。看图只核对这次回图，不增加专门分析调用或PPT预览。
-3. 背景必须是原构图背景、无前景标题/正文；前景必须是整页独立素材参考；wordart必须只有指定主标题；board必须包含列出的全部指定成员，普通正文清空。**照片任务要照片，不能拿标题去填照片框。** 核对是宿主看图声明，程序不具备语义识图/提供方认证能力，不等于整体还原或逐像素视觉验收；附带装饰、光晕、画质等偏差如实写入observed/notes。角色错误不可填matches_task:true。
-4. 用invoke_once返回的result_template登记真实文件；缺文件或声明不符只纠正已有结果，不擅自再生图。背景/前景可并行，串行登记且先背景；先回前景先保存。每批最多三项，等待不是重试许可。
-5. `describe`只查看当前working与ruler，一次提交布局、每行原生正文、基础图形、独立艺术素材。原图决定文字和坐标，不能用生成前景改写事实。艺术字填准确lettering与外观description；最大有字艺术组唯一走独立标题。工作1920×1080，尺25/50/5只辅助定位，不吸附格点。
-6. `await_results`只等待或登记已存在回图；未开始项只按新generate准备。`done`立即给pptx下载，简述实有缺项和警告，然后停止。正常不制作诊断包、渲染预览或追加修饰调用。
+艺术字、纸张、标签、图标和独立小插画属于前景。普通正文逐可见行制作原生文本，基础形状和规则表格原生编辑。
+
+## 连续执行
+
+1. generate是准备动作。读取该任务prompt_file原文，按begin_template填真实工具名与实际参数后提交。首次invoke_once允许该task和attempt调用一次，请求一张。原文提示、有序参考图、尺寸、透明设置均按本任务传入。服务没有暴露的信息留unknown，tool_arguments不写密钥或Base64。
+2. 回图先保存，再实际查看对应任务的图片，使用结果模板登记路径与role_review。背景清除页面前景，完整前景保留页面素材，wordart只有指定主标题，board包含全部指定成员并清空普通正文。观察应描述实际回图，caption不能充当看图结论或executed_prompt。按模板使用request_sha256与output_sha256绑定任务。
+3. registration_required表示现有回图的登记需要补齐。按程序回传模板补真实观察和必要字段，继续提交同一文件，不追加生图。尚未看图就先查看，不能把默认false改成未经观察的通过。
+4. 真实生成内容或技术输出失败时，控制器可按新作业冻结预算下发一次修复任务。全作业最多增加一次调用，只执行返回的新attempt和修复提示，保留此前全部请求与回图。已有合格结果继续复用。修复卡已受该策略约束，无需再为同一次修复索要确认。预算用尽、绑定冲突、调用数无法核实、超调用或用户停止时，保留现场并报告具体原因。
+5. 背景与完整前景可在宿主支持时并行，结果串行登记且先背景。先回前景先保存。每批最多三项，等待不构成再次调用许可。意外单次多回图时保存全部有序原件及各自真实核对，程序只采用第一份技术及角色可用回图。
+6. describe只看工作原图与同源尺图，一次提交布局、逐行正文、基础图形与独立素材。独立照片或截图写art.embedded_image:true，图内文字保持图片内容。艺术字填写准确lettering与外观description。原图决定文字、身份和位置，生成前景仅供制作素材。
+7. done立即提供PPTX与简短实有缺项、警告，结束制作。文件完成后无需额外预览、润色生图或诊断导出。
 
 ```text
 python -m newpath --work /absolute/new-job --input /absolute/result.json
 python -m newpath --work /absolute/new-job
 ```
 
-## 预算与异常
+## 状态与记录
 
-每任务最多一次调用，请求一张。背景只做一次，其他任务不能沿用背景/标题回图。调用中只等候；路径/尺寸差异/轮询waiting不能触发重画。prompt_file、参考板、工作原图不是生成输出，不能改名、复制或重编码后冒充结果。跨任务同输出文件像素或同服务output ID会被拒绝；这些检查不是服务端身份认证。
+每项首次调用一张，只有控制器明确下发的修复任务可使用额外预算。同一attempt重复begin或waiting只能等待、保存或登记已有结果。源图、参考板和提示词文件不能冒充生成结果，跨任务同像素或同服务输出标识会被拒绝。用户停止优先于自动恢复，继续首次未开始任务需按resume_unstarted记录真实新指令。
 
-单次调用明确invocation_count=1、意外返回多张时，保存完整有序原件清单，按程序要求逐图独立核对role_review，通过returned_outputs原样登记。程序仅顺序采用第一份技术及角色可用结果，未查看/不合格者保留原因，不择优、不重画；不再为采用已有结果索要确认。这不授权额外调用。已发生额外调用、调用数未知而无法确证单次、真正失败、用户停止等仍保留现场，不能伪造done。
+真实调用次数与返回数量分别登记，未知用null或省略，不能按文件数推算。实际executed_prompt只有取得时记录，match/mismatch/unknown与角色核对分别保存，提示词文字差异不消耗修复预算。错误角色不得声明通过。已有拒绝与后续补充同时保留，done为终态。
 
-次数如实登记，未知省略/null，不用文件数推算调用数，不隐瞒结果。用户全局停止新增生成时保持stop，采用已有某任务不解除全局stop；只在用户后来明确允许剩余任务首次调用时，引用原话resume_unstarted。真正失败任务要再次生成，仍需明确授权，不自动重试或编造用户原话。paused/error保留全部文件并解释具体失败，不反复建议同一句确认绕过未完成任务。
+## 诊断
 
-调用前请求锁定；调用后实际prompt确实取得才写executed_prompt，不可得保留unknown。不同原文保存双方及SHA和警告，不把工具返回说明冒充调用prompt。prompt审计match/mismatch/unknown与**角色看图核对**分开：文字差异本身不耗图重画，错误主体不能只靠技术alpha检查或提示词警告放行。首次审计不可被后续省略洗掉，补充/冲突另存；done终态。
+用户要求导出时，指定实际作业目录并把ZIP写在目录之外。程序只读取该目录与必要运行文件，索引绑定原图哈希和任务状态，缺失证据如实列出。目标父目录需已存在，磁盘需支持原子硬链接发布。selected_job_summary反映所选目录的真实状态；出现selected_job_has_no_recorded_image_invocation时，核对先前对话指向的作业路径，不能把未开始作业描述成背景回图失败。
 
-## 保留的素材及排版合同
+```text
+python -m newpath --work /absolute/actual-job --diagnostics /absolute/本轮流程诊断.zip
+```
 
-背景保留自然融合的场景、人物、车、建筑与真实花枝；标题、纸张、标签、图标、独立小插画属于前景；正文与简单形状原生编辑。不透明背景transparent_background:false，其余前景/board/wordart均true；真实PNG alpha，不接受画出的棋盘/白底。组件板按原像素需求及有收益的第四板规则规划，每批三项不是总板数上限；不自行扩板或重排。
+## 素材和排版
+
+背景使用不透明PNG，transparent_background:false。其余前景、board和wordart均true，要求真实alpha，不能画棋盘或白底冒充。组件板按原像素需求及有收益的第四板规则规划，每批三项不代表总板数上限。工作1920×1080，25/50/5尺仅用于读坐标，不吸附格点，不自行扩板或改位。
 
 标题按alpha>=2核心等比放入目标框，保留所有原RGBA（含alpha1、hidden RGB和原白色描边），紧矩形裁切；完整图片框可因淡边超出原框，四页工程边界不变。仅当真实alpha、确有透明空白、存在完整内缩alpha>1核心且触边全部为alpha1时，技术放行并警告，无需重画。alpha>1触边、无透明空白、假透明仍拒绝，不用补白或去色伪修。
 

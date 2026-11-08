@@ -17,6 +17,14 @@ class BindingViolation(ValueError):
     """Source substitution or contradictory local task ownership is not salvage."""
 
 
+class RegistrationRequired(ValueError):
+    """Existing output needs completed host observations, not another call."""
+
+
+class RoleMismatch(ValueError):
+    """A viewed output explicitly failed its assigned role or subjects."""
+
+
 def validate_policy(policy):
     if policy not in (None,DELIVERY_POLICY):raise ValueError('Unsupported delivery policy.')
     return policy
@@ -38,7 +46,7 @@ def frozen_policy(work,state,requested=None):
 
 
 def review_template(task):
-    review={'role':task['role'],'output_sha256':'','looked_at_return':False,'matches_task':False,'observed':''}
+    review={'role':task['role'],'output_sha256':task.get('registration',{}).get('sha256',''),'looked_at_return':False,'matches_task':False,'observed':''}
     if task['role']=='background':review['foreground_text_absent']=False
     elif task['role']=='foreground':review['page_elements_match']=False
     elif task['role']=='wordart':review.update(lettering_matches=False,only_assigned_title=False)
@@ -118,9 +126,10 @@ def normalize_known_returns(data):
     return data
 
 
-def claim_return(work,state,task,data,path,digest):
+def claim_return(work,state,task,data,path,digest,*,incomplete_registration=False):
     """Bind every declared existing return, including rejected/unselected ones."""
-    if data.get('request_sha256')!=task['execution']['request_sha256']:
+    missing_request=data.get('request_sha256') in (None,'')
+    if data.get('request_sha256')!=task['execution']['request_sha256'] and not (incomplete_registration and missing_request):
         raise BindingViolation('The result request binding differs from this exact task invocation.')
     request=json.loads(relative_file(work,task['execution']['request_file']).read_text(encoding='utf-8'))
     tool=request['request']['tool']
@@ -151,6 +160,9 @@ def claim_return(work,state,task,data,path,digest):
             if output_id is not None and identity.get('tool_output_id')==output_id:
                 if identity.get('binding_tool',identity.get('tool'))==tool:
                     raise BindingViolation('This tool output identifier is already bound to another task.')
+    if incomplete_registration and missing_request:
+        if decode_error is not None:raise decode_error
+        return pixels,tool,request
     claims=task.setdefault('return_bindings',[])
     identity={'task_id':task['id'],'role':task['role'],'attempt':task['attempt'],
               'output_sha256':digest,'pixel_sha256':pixels,'binding_tool':tool,'tool_output_id':output_id,
@@ -160,11 +172,16 @@ def claim_return(work,state,task,data,path,digest):
     return pixels,tool,request
 
 
-def validate_return(work,state,task,data,path,digest):
-    pixels,tool,request=claim_return(work,state,task,data,path,digest)
+def validate_return(work,state,task,data,path,digest,*,incomplete_registration=False):
+    pixels,tool,request=claim_return(work,state,task,data,path,digest,
+                                   incomplete_registration=incomplete_registration)
     review=data.get('role_review')
-    if not isinstance(review,dict):raise ValueError('A role_review based on the actual saved return is required.')
-    if review.get('role')!=task['role'] or review.get('output_sha256')!=digest:
+    incomplete=RegistrationRequired if incomplete_registration else ValueError
+    if not isinstance(review,dict):raise incomplete('A role_review based on the actual saved return is required.')
+    if incomplete_registration and ((review.get('role') not in (None,'',task['role']))
+            or review.get('output_sha256') not in (None,'',digest)):
+        raise BindingViolation('The role review contradicts this exact role or actual output SHA binding.')
+    if not incomplete_registration and (review.get('role')!=task['role'] or review.get('output_sha256')!=digest):
         raise ValueError('The role review is not bound to this role and actual output SHA.')
     if any(entry['attempt']==task['attempt'] and (
             entry['output_sha256']==digest
@@ -173,7 +190,7 @@ def validate_return(work,state,task,data,path,digest):
                 and entry.get('tool_output_id')==data['tool_output_id']
                 and entry.get('binding_tool')==tool))
            for entry in task.get('role_review_rejections',[])):
-        raise ValueError('This actual output was explicitly viewed and rejected for this task subject; a later true declaration cannot erase that failure.')
+        raise RoleMismatch('This actual output was explicitly viewed and rejected for this task subject; a later true declaration cannot erase that failure.')
     required={'background':['foreground_text_absent'],'foreground':['page_elements_match'],
               'wordart':['lettering_matches','only_assigned_title'],'board':['ordinary_text_removed']}[task['role']]
     if review.get('looked_at_return') is True and (review.get('matches_task') is False or any(review.get(key) is False for key in required)):
@@ -183,23 +200,29 @@ def validate_return(work,state,task,data,path,digest):
                    'observed':review.get('observed')[:4000] if isinstance(review.get('observed'),str) else None,
                    'explicit_false_checks':[key for key in ['matches_task',*required] if review.get(key) is False]}
         task.setdefault('role_review_rejections',[]).append(rejection)
-        raise ValueError('The viewed actual return failed its role/subject review; preserve this real failure.')
+        raise RoleMismatch('The viewed actual return failed its role/subject review; preserve this real failure.')
+    if incomplete_registration and (not review.get('role') or not review.get('output_sha256')):
+        raise RegistrationRequired('Complete the role review role and actual output SHA binding.')
+    if incomplete_registration and not data.get('request_sha256'):
+        raise RegistrationRequired('Complete the result request_sha256 using the recorded invocation hash.')
     if review.get('looked_at_return') is not True or review.get('matches_task') is not True:
-        raise ValueError('The actual return did not pass the host role/subject review; preserve this real failure.')
+        raise incomplete('The actual return needs a completed host role/subject review.')
     observed=review.get('observed')
     if not isinstance(observed,str) or not observed.strip() or len(observed)>4000:
-        raise ValueError('The role review needs a short concrete observation of the saved return.')
+        raise incomplete('The role review needs a short concrete observation of the saved return.')
     if observed in (request['request']['prompt'],data.get('executed_prompt')):
-        raise ValueError('A role review must describe the viewed return, not copy a prompt or tool caption.')
+        raise incomplete('A role review must describe the viewed return, not copy a prompt or tool caption.')
     if any(review.get(field) is not True for field in required):
-        raise ValueError('The saved return failed required role review checks: '+', '.join(required))
+        raise incomplete('Complete required role review checks: '+', '.join(required))
     if task['role']=='board':
         members=[m['id'] for m in task['board']['members']];matched=review.get('matched_members')
         if not isinstance(matched,list) or any(not isinstance(v,str) for v in matched) or len(matched)!=len(members) or set(matched)!=set(members):
-            raise ValueError('The role review must match every assigned board member and no other member.')
+            if incomplete_registration and isinstance(matched,list) and matched:
+                raise RoleMismatch('The viewed board does not match every assigned member.')
+            raise incomplete('The role review must match every assigned board member and no other member.')
     notes=review.get('notes',[])
     if not isinstance(notes,list) or len(notes)>20 or any(not isinstance(n,str) or not n.strip() or len(n)>2000 for n in notes):
-        raise ValueError('Role review notes must be a short list of actual observed limitations.')
+        raise incomplete('Role review notes must be a short list of actual observed limitations.')
     fields=['role','output_sha256','looked_at_return','matches_task','observed',*required]
     if task['role']=='board':fields.append('matched_members')
     normalized={key:copy.deepcopy(review[key]) for key in fields};normalized['notes']=list(notes)

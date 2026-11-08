@@ -1,3 +1,3 @@
-# PPT Rebuilder King runtime
+# PPT Rebuilder King
 
-Read SKILL.md. New jobs require role-specific host visual declarations bound to the invocation request and returned file. This is not provider or semantic verification. Work files stay outside this directory.
+读取本目录SKILL.md，使用python -m newpath启动与继续当前作业。新作业采用一次受限恢复策略，显式--diagnostics导出指定作业。

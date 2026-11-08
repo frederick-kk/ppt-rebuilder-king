@@ -1,8 +1,8 @@
 {
   "schema": "ppt-rebuilder.public-release-validation/2",
-  "date": "2026-11-05",
-  "version": "2026.11.05-package.1",
-  "package_id": "PPT Rebuilder King-20261025-quality-test",
+  "date": "2026-11-08",
+  "version": "2026.11.08-flow.r1",
+  "package_id": "PPT Rebuilder King-20261108-flow-r1",
   "provider_image_calls_in_local_validation": 0,
   "runtime_scope": {
     "working_pixels": [
@@ -14,131 +14,139 @@
       50,
       5
     ],
-    "generation_prompt_and_call_policy_unchanged": true,
-    "native_space_estimation_fixed": true,
-    "owned_grid_gaps_fixed": true,
-    "code_and_workflow_changed_in_this_revision": false
+    "execution_policy": "bounded-recovery/1",
+    "extra_repair_calls_per_job_maximum": 1,
+    "independent_photos": "Complete rectangular foreground images with internal writing and people retained",
+    "native_body_maximum_font_size_reduction": 0.25
   },
-  "limits": [
-    "No fresh provider telemetry, model run or end-to-end timing certification",
-    "No new full Office or cross-platform editing certification",
-    "Unavailable original historic job state is not reconstructed as authentic evidence",
-    "Optional private diagnostics are not distributed; skipped tests are not counted as passing"
-  ],
-  "historical_local_validation": {
-    "tests": 415,
-    "passed": 404,
-    "skipped": 11,
-    "failures": 0,
-    "errors": 0,
-    "scope": "Historical local engineering validation used two additional historical source comparison files, which were not included in that source archive; not rerun for this distribution-only revision.",
-    "date": "2026-10-25"
-  },
-  "historical_source_validation": {
+  "accepted_runtime_engineering_validation": {
     "status": "passed",
-    "tests": 429,
-    "passed": 418,
+    "date": "2026-11-08",
+    "tests": 519,
+    "passed": 508,
     "skipped": 11,
     "failures": 0,
     "errors": 0,
     "command": "python -B -m unittest discover -s engineering/tests -v",
-    "isolation": "Fresh independently extracted source ZIP; 393 hash-pinned dependencies copied from the approved artifact; no private diagnostics or historic sibling directories; PRK diagnostic variables removed.",
-    "scope": "Historical runtime, engineering and developer build tests; not rerun for this revision and not provider/model/Office visual or end-to-end time certification.",
+    "runtime_snapshot_matched": true,
+    "runtime_snapshot_stable_during_suite": true,
+    "scope": "Recorded isolated offline engineering suite matching the accepted runtime manifest. Optional private diagnostics and local permission limits are recorded as skips.",
     "skipped_test_records": [
-      "test_three_actual_diagnostic_reference_returns_are_rejected (test_board_result_provenance.BoardResultProvenance) ... skipped 'actual native-alpha diagnostic not supplied'",
-      "test_supplied_real_five_backgrounds_and_two_foregrounds_pause_without_new_calls (test_generation_discipline.GenerationDiscipline) ... skipped 'Real diagnostic ZIP not supplied'",
-      "test_linked_report_is_not_followed_and_output_alias_is_refused (test_inspect_job.InspectorTests) ... skipped 'Local symlink permission unavailable: OSError'",
-      "test_actual_three_member_board_recovers_all_assets_with_exact_rgba (test_narrow_native_gutters.NarrowNativeGutters) ... skipped 'actual component placement diagnostic not supplied'",
-      "test_actual_three_boards_recover_all_eleven_with_exact_rgba (test_native_boundary_recovery.NativeBoundaryRecovery) ... skipped 'actual missing-components diagnostic not supplied'",
-      "test_actual_ten_object_layout_no_longer_fails_with_matching_font_missing (test_native_digit_estimation.NativeDigitEstimation) ... skipped 'actual textfit budget diagnostic not supplied'",
-      "test_source_copy_working_png_and_transform_match_frozen_runtime (test_ruler_guide.RulerSourceIntegration) ... skipped 'optional separate frozen runtime not available'",
-      "test_actual_native_layout_overflow_line_is_contained (test_text_overflow_recovery.TextOverflowRecovery) ... skipped 'real overflow diagnostic not supplied'",
-      "test_real_no_alpha_checkerboard_and_no_zero_photo_remain_rejected (test_wordart_edge_overspray.WordartEdgeOverspray) ... skipped 'real title retry evidence not supplied'",
-      "test_real_retry_one_continues_without_losing_any_rgba_or_changing_placement (test_wordart_edge_overspray.WordartEdgeOverspray) ... skipped 'real title retry evidence not supplied'",
-      "test_actual_653_over_217_diagnostic_title_retains_145_high_ink (test_wordart_placement.DiagnosticTitlePlacement) ... skipped 'Set PRK_REAL_TITLE_DIAGNOSTIC to the supplied diagnostic ZIP'"
-    ],
-    "date": "2026-10-25"
+      {
+        "test": "test_three_actual_diagnostic_reference_returns_are_rejected (test_board_result_provenance.BoardResultProvenance)",
+        "reason": "actual native-alpha diagnostic not supplied"
+      },
+      {
+        "test": "test_supplied_real_five_backgrounds_and_two_foregrounds_pause_without_new_calls (test_generation_discipline.GenerationDiscipline)",
+        "reason": "Real diagnostic ZIP not supplied"
+      },
+      {
+        "test": "test_linked_report_is_not_followed_and_output_alias_is_refused (test_inspect_job.InspectorTests)",
+        "reason": "Local symlink permission unavailable: OSError"
+      },
+      {
+        "test": "test_actual_three_member_board_recovers_all_assets_with_exact_rgba (test_narrow_native_gutters.NarrowNativeGutters)",
+        "reason": "actual component placement diagnostic not supplied"
+      },
+      {
+        "test": "test_actual_three_boards_recover_all_eleven_with_exact_rgba (test_native_boundary_recovery.NativeBoundaryRecovery)",
+        "reason": "actual missing-components diagnostic not supplied"
+      },
+      {
+        "test": "test_actual_ten_object_layout_no_longer_fails_with_matching_font_missing (test_native_digit_estimation.NativeDigitEstimation)",
+        "reason": "actual textfit budget diagnostic not supplied"
+      },
+      {
+        "test": "test_source_copy_working_png_and_transform_match_frozen_runtime (test_ruler_guide.RulerSourceIntegration)",
+        "reason": "optional separate frozen runtime not available"
+      },
+      {
+        "test": "test_actual_native_layout_overflow_line_is_contained (test_text_overflow_recovery.TextOverflowRecovery)",
+        "reason": "real overflow diagnostic not supplied"
+      },
+      {
+        "test": "test_real_no_alpha_checkerboard_and_no_zero_photo_remain_rejected (test_wordart_edge_overspray.WordartEdgeOverspray)",
+        "reason": "real title retry evidence not supplied"
+      },
+      {
+        "test": "test_real_retry_one_continues_without_losing_any_rgba_or_changing_placement (test_wordart_edge_overspray.WordartEdgeOverspray)",
+        "reason": "real title retry evidence not supplied"
+      },
+      {
+        "test": "test_actual_653_over_217_diagnostic_title_retains_145_high_ink (test_wordart_placement.DiagnosticTitlePlacement)",
+        "reason": "Set PRK_REAL_TITLE_DIAGNOSTIC to the supplied diagnostic ZIP"
+      }
+    ]
   },
-  "historical_user_feedback": {
-    "selected_for_current_release": true,
-    "scope": "Maintainer reported this version good; not independently observed model visual/timing certification."
+  "source_packaging_validation": {
+    "status": "passed",
+    "tests": 17,
+    "passed": 17,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "command": "python -m unittest tools.test_repack_runtime -v",
+    "scope": "Public source packaging tools, exact optional prompt export, existing no-prompt behavior and pre-output validation."
   },
   "distribution_validation": {
-    "status": "passed",
-    "scope": "Current 2026.11.05-package.1 attachment snapshot: inventories and path safety; unchanged 423-file runtime and fixed runtime manifest/snapshot; project instruction synchronization and legal notice presence.",
-    "runtime_files_expected": 423,
-    "runtime_manifest_sha256": "405898341da9631bdc5a60f5f7cf3ce04c2b3f02dc8a45756bc2f2381f1773ee",
-    "runtime_source_snapshot_sha256": "bf24b73c1f5a47e1d4bc75ee77b214bdc8525009de61849a32b53e2d312379b6",
-    "whole_archive_byte_identical_to_previous": false,
-    "archive_sha256_location": "PPT-Rebuilder-King-20261105-SHA256SUMS.txt",
-    "date": "2026-11-05",
-    "runtime_files_verified": 423,
-    "runtime_archive_members": 452,
-    "source_archive_members": 133,
-    "packaging_tests": {
-      "tests": 27,
-      "passed": 27,
-      "skipped": 0,
-      "failures": 0,
-      "errors": 0,
-      "new_repack_tests": 14,
-      "existing_builder_tests": 13,
-      "scope": "Targeted packaging and legacy builder checks rerun for the current 2026.11.05-package.1 attachment snapshot."
+    "distribution_mode": "approved-complete-archive",
+    "runtime_archive_members": 784,
+    "runtime_files_expected": 425,
+    "runtime_dependency_files": 394,
+    "runtime_manifest_sha256": "eac29a95575b276a90499a1b9918eba39f274c7acfe81071c3ef9cdf6e63a16f",
+    "runtime_source_snapshot_sha256": "7423a29d88ea651f05c25f892bfc858d42b72c64da4850dfec3681b35ea56f16",
+    "runtime_archive": {
+      "name": "PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip",
+      "sha256": "9f98c26ecb055bb5eb1f1b8bfa9409be7e79bae108102a7bc50a33c91dbb6047",
+      "bytes": 3120060
     },
-    "checks": {
-      "archive_crc": true,
-      "public_manifests": true,
-      "runtime_file_bytes_unchanged": true,
-      "original_runtime_manifest_unchanged": true,
-      "runtime_outer_relative_links_valid": true,
-      "source_payload_matches_checkout": true,
-      "project_instruction_copies_identical": true,
-      "external_checksums_verified": true,
-      "scope": "Current attachment CRC, payload hashes and sizes, all 423 runtime files byte for byte, original runtime manifest, source checkout, relative links, instruction copies and external checksum checks; not a new CLI, image-model, Office or timing run."
+    "source_archive": {
+      "name": "PPT-Rebuilder-King-20261108-flow-r1-source.zip",
+      "hash_location": "PPT-Rebuilder-King-20261108-flow-r1-SHA256SUMS.txt"
     },
-    "artifacts": {
-      "runtime": {
-        "name": "PPT-Rebuilder-King-ChatGPT-20261105.zip",
-        "sha256": "4de26ffd0848f7ea40fc9e0b6333a6b6bdbe9ba301ed9eaecfa00f4229e888bc",
-        "files": 452
-      },
-      "source": {
-        "name": "PPT-Rebuilder-King-20261105-source.zip",
-        "sha256": "5a1bfbf3befed775b4877527552ebb432fac7511938e7f1a48e65243a34c7449",
-        "files": 133
-      }
-    },
-    "runtime_public_manifest_payloads_verified": 451,
-    "source_public_manifest_payloads_verified": 132
+    "companions": [
+      "PPT-Rebuilder-King-20261108-flow-r1-PROJECT-INSTRUCTIONS.txt",
+      "PPT-Rebuilder-King-20261108-flow-r1-PROMPT.txt",
+      "PPT-Rebuilder-King-20261108-flow-r1-SHA256SUMS.txt"
+    ],
+    "runtime_copy_policy": "Exact approved archive bytes",
+    "source_policy": "Independent source archive with runtime dependencies and compat-runtime/MANIFEST.json excluded",
+    "project_instructions_and_prompt": "Exact accepted companion bytes"
   },
-  "historical_environment": {
-    "os": "Windows 10",
-    "python": "3.10.9",
-    "node": "v22.21.0",
-    "Pillow": "12.3.0",
-    "NumPy": "2.2.6"
-  },
-  "historical_synthetic_cli_smoke": {
+  "current_cli_offline_replay": {
     "status": "passed",
-    "runtime_source": "Fresh extraction of the previously published 2026.11.05-package.1 runtime archive",
-    "terminal_phase": "done",
-    "cli_steps": 14,
+    "date": "2026-11-08",
+    "platform": "Windows",
+    "cli_steps": 9,
     "provider_image_calls": 0,
-    "editable_body_texts": 2,
-    "shape_elements_including_line": 4,
-    "line_elements": 1,
-    "artwork_pictures": 2,
-    "role_review": "Simulated host declarations with deterministic synthetic inputs",
-    "office_editing_performed": false,
-    "scope": "Historical real CLI and local native PPTX structure check of the previously published snapshot; not rerun for the current attachment snapshot. The 423 runtime files and original runtime manifest are byte-identical. Not image-model fidelity, provider telemetry, end-to-end timing or Office editing certification.",
-    "date": "2026-11-05",
-    "runtime_archive_sha256": "938c7358c30360db4c7237a4f5138085d8518481ba9b0e0951a14ddb87cf0bb8"
+    "runtime_manifest_payloads_verified": 424,
+    "runtime_files_including_manifest": 425,
+    "fixture_provenance": "Existing PNG bytes through a simulated host callback",
+    "covered": [
+      "new job",
+      "begin registration",
+      "missing-review registration_required",
+      "same-return resume",
+      "truthful role rejection",
+      "single repair preparation",
+      "selected-job diagnostics",
+      "empty-job warning"
+    ],
+    "recorded_return_preserved": true,
+    "original_request_and_brief_preserved": true,
+    "repair_reserved_exactly_once": true,
+    "diagnostics_job_unchanged": true,
+    "scope": "Protocol replay through repair preparation and read-only diagnostic export"
   },
-  "historical_distribution_content_audit": {
-    "status": "passed",
-    "date": "2026-11-05",
-    "runtime_archive_sha256": "938c7358c30360db4c7237a4f5138085d8518481ba9b0e0951a14ddb87cf0bb8",
-    "source_archive_sha256": "dc17e4043bf617e1f95b2b8c03d17ed7d48c8ad2d7d4ca11afec33664df4b34b",
-    "scope": "Finite distribution content, extracted text and nested Office archive checks of the previously published snapshot; not rerun for the current attachment snapshot and not a universal absence or rights certification."
+  "limits": [
+    "Fresh model image quality and browser end-to-end timing await separate acceptance",
+    "Provider execution and billing require provider evidence",
+    "Full-page fidelity, matching fonts, Office editing and cross-platform behavior require sample-specific checks",
+    "Optional private diagnostic skips are listed separately from passing tests"
+  ],
+  "historical_records": {
+    "scope": "Historical evidence for its original samples and environments",
+    "office_record": "RELEASE_VALIDATION-beta1.zh-CN.md",
+    "machine_summary": "VALIDATION_SUMMARY-beta1.json"
   }
 }

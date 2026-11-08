@@ -63,7 +63,7 @@ def select_primary_wordart(arts):
     candidates = []
     for index, member in enumerate(copied):
         lettering = member.get('lettering')
-        if not isinstance(lettering, str) or not lettering.strip():
+        if member.get('embedded_image') is True or not isinstance(lettering, str) or not lettering.strip():
             continue
         identity = member.get('id')
         if not isinstance(identity, str) or not identity.strip():

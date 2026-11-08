@@ -227,14 +227,21 @@ class NativeWorkflowContracts(unittest.TestCase):
         self.assertEqual(c.run(work)['kind'], 'await_results')
         self.assertEqual((work / 'state.json').read_bytes(), before)
 
-    def test_only_substrate_prompts_change_background_and_title_remain_exact(self):
+    def test_layer_policy_is_shared_and_title_remains_exact(self):
         background = prompts.layer_brief('background', {'offset': [0, 0], 'resized': [1920, 1080]})
+        native_background = prompts.layer_brief('background', {'offset': [0, 0], 'resized': [1920, 1080]},
+                                               background_mode=MODE)
         title = prompts.wordart_brief(self.primary)
-        self.assertEqual(hashlib.sha256(background.encode()).hexdigest(),
-                         'db909ef29e78839f161c2e6d379dacaebddb816864a3b76e78de5ffd6cd10698')
+        self.assertEqual(background, native_background)
+        self.assertIn('complete embedded images', background)
+        self.assertIn('one opaque PNG covering the full working rectangle', background)
+        self.assertEqual(json.loads(background.split('Geometry: ', 1)[1]),
+                         {'working_pixels': [1920, 1080], 'content_offset': [0, 0], 'content_size': [1920, 1080]})
         self.assertEqual(hashlib.sha256(title.encode()).hexdigest(),
                          '797efb2aafbd6f90249b483c9eb0894bfc53a6dc84fa94a42bb19a638901991b')
         work, first, unused = self.ready()
+        background_task = next(task for task in first['jobs'] if task['role'] == 'background')
+        self.assertEqual(Path(background_task['prompt_file']).read_text(encoding='utf-8'), native_background)
         front = next(task for task in first['jobs'] if task['role'] == 'foreground')
         foreground_text = Path(front['prompt_file']).read_text(encoding='utf-8')
         self.assertIn('alpha', foreground_text.lower())

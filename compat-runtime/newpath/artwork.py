@@ -121,13 +121,16 @@ def prepare_boards(source,foreground,arts,out,*,background_mode=None):
                     'inset_px':inset,'rendered_size':rendered,
                     'pixel_budget':placement.get('pixel_budget',{})}
             if 'inset_xy' in placement:member['inset_xy']=inset_xy
-            for optional in ('lettering','z'):
+            for optional in ('lettering','z','embedded_image'):
                 if optional in art:member[optional]=art[optional]
             members.append(member)
-            identity.append({'id':art['id'],'slot':slot,'crop':placement['crop'],'inset_px':inset,
+            member_identity={'id':art['id'],'slot':slot,'crop':placement['crop'],'inset_px':inset,
                              'inset_xy':inset_xy,
                              'description':member['description'],'lettering':member.get('lettering'),
-                             'pixels_sha256':hashlib.sha256(cropped.tobytes()).hexdigest()})
+                             'pixels_sha256':hashlib.sha256(cropped.tobytes()).hexdigest()}
+            if 'embedded_image' in member:
+                member_identity['embedded_image']=member['embedded_image']
+            identity.append(member_identity)
             drawings.append((ref,slot,rendered))
         content={'policy':plan['policy'],'reference_policy':_REFERENCE_POLICY,'size':size,'key':key,
                  'grid':plan.get('grid'),'members':identity,'reference_warnings':reference_warnings}

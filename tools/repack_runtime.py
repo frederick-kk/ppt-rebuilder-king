@@ -1,7 +1,7 @@
 """Repackage the approved runtime bytes; build source separately, without generation.
 
-The old runtime MANIFEST.json is evidence, not a build input to regenerate.
-Only the outer package, documentation and public inventory are new.
+The approved runtime MANIFEST.json is evidence, not a build input to regenerate.
+The complete runtime archive is copied exactly; public source is built separately.
 """
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
@@ -25,13 +25,13 @@ RUNTIME_COUNT = 423
 ARCHIVE_ROOT = 'PPT Rebuilder King'
 RUNTIME_NAME = 'PPT-Rebuilder-King-ChatGPT-20261105.zip'
 SOURCE_NAME = 'PPT-Rebuilder-King-20261105-source.zip'
-COMPLETE_ARCHIVE_SHA256 = 'c275767c70dacf8ce0ed05db975eb6e91d32a09bcc558c92d08339d90daab688'
-COMPLETE_ARCHIVE_ROOT = 'PPT Rebuilder King-20261107-components-r1'
-COMPLETE_ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261107-components-r1.zip'
-COMPLETE_ARCHIVE_MEMBERS = 779
-COMPLETE_RUNTIME_MANIFEST_SHA256 = 'bd6ab24b6f87218e55d8b2dcf5e4ff0410859683944cac00654fab4aa9042d40'
-COMPLETE_RUNTIME_SNAPSHOT_SHA256 = '73a64dc1d78f60cfc2900086a42c3605f8ffa08998ad518e958f2da3841487ac'
-COMPLETE_RUNTIME_COUNT = 423
+COMPLETE_ARCHIVE_SHA256 = '9f98c26ecb055bb5eb1f1b8bfa9409be7e79bae108102a7bc50a33c91dbb6047'
+COMPLETE_ARCHIVE_ROOT = 'PPT Rebuilder King-20261108-flow-r1'
+COMPLETE_ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip'
+COMPLETE_ARCHIVE_MEMBERS = 784
+COMPLETE_RUNTIME_MANIFEST_SHA256 = 'eac29a95575b276a90499a1b9918eba39f274c7acfe81071c3ef9cdf6e63a16f'
+COMPLETE_RUNTIME_SNAPSHOT_SHA256 = '7423a29d88ea651f05c25f892bfc858d42b72c64da4850dfec3681b35ea56f16'
+COMPLETE_RUNTIME_COUNT = 425
 RUNTIME_DOCS = frozenset({
     'PROJECT_INSTRUCTIONS.txt', 'README.zh-CN.md', 'LICENSE', 'NOTICE.md',
     'THIRD_PARTY_LICENSES.md', 'KNOWN_ISSUES.md', 'RELEASE.json',
@@ -52,7 +52,7 @@ RUNTIME_LEGAL_FILES = frozenset({
 })
 SOURCE_ROOT_FILES = RUNTIME_DOCS | frozenset({
     'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'CODE_OF_CONDUCT.md',
-    'SECURITY.md', 'SUPPORT.md', '.gitignore', '.gitattributes',
+    'SECURITY.md', 'SUPPORT.md', '.gitignore', '.gitattributes', 'PROMPT.txt',
 })
 SOURCE_DOCS = frozenset({
     'docs/USAGE.zh-CN.md', 'docs/ARCHITECTURE.zh-CN.md',
@@ -417,6 +417,11 @@ def build_complete(baseline, public_source, output):
         raise ValueError('Project instructions differ from approved complete archive')
     names = [meta['archive_name'], meta['source_archive_name'],
              meta['project_instructions_name'], meta['sha256sums_name']]
+    prompt_name = meta.get('prompt_name')
+    if prompt_name is not None:
+        names.append(prompt_name)
+        if 'PROMPT.txt' not in public_source:
+            raise ValueError('Missing public prompt companion: PROMPT.txt')
     if (len({name.casefold() for name in names}) != len(names)
             or any(len(safe_member(name)) != 1 for name in names)
             or not meta['source_archive_name'].endswith('.zip')):
@@ -432,7 +437,7 @@ def build_complete(baseline, public_source, output):
         'files': inventory(source_data),
     })
     output.mkdir(parents=True, exist_ok=False)
-    runtime_path, source_path, instructions_path, sums_path = [output / name for name in names]
+    runtime_path, source_path, instructions_path, sums_path = [output / name for name in names[:4]]
     with runtime_path.open('xb') as stream:
         stream.write(Path(baseline).read_bytes())
     pack(source_path, ARCHIVE_ROOT + '-source', source_data, int(meta['source_date_epoch']))
@@ -440,13 +445,22 @@ def build_complete(baseline, public_source, output):
     source_check = verify_source(source_path)
     with instructions_path.open('xb') as stream:
         stream.write(data['PROJECT_INSTRUCTIONS.txt'])
+    checksum_paths = [runtime_path, source_path, instructions_path]
+    if prompt_name is not None:
+        prompt_path = output / prompt_name
+        with prompt_path.open('xb') as stream:
+            stream.write(public_source['PROMPT.txt'])
+        checksum_paths.append(prompt_path)
     sums = ''.join(sha(path.read_bytes()) + '  ' + path.name + '\n'
-                   for path in (runtime_path, source_path, instructions_path))
+                   for path in checksum_paths)
     with sums_path.open('xb') as stream:
         stream.write(sums.encode('utf-8'))
-    return {'runtime': str(runtime_path), 'source': str(source_path),
-            'instructions': str(instructions_path), 'checksums': str(sums_path),
-            'runtime_check': runtime_check, 'source_check': source_check}
+    result = {'runtime': str(runtime_path), 'source': str(source_path),
+              'instructions': str(instructions_path), 'checksums': str(sums_path),
+              'runtime_check': runtime_check, 'source_check': source_check}
+    if prompt_name is not None:
+        result['prompt'] = str(prompt_path)
+    return result
 
 
 def build(baseline, source, output):

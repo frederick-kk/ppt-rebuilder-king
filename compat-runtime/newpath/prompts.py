@@ -3,11 +3,24 @@ import json
 from .native import MODE as MATERIAL_MODE
 
 
+EMBEDDED_IMAGE_POLICY = (
+    'Standalone embedded photos, screenshots, scans, charts and collages are independent foreground image assets. '
+    'Preserve each as one complete rectangular image with its full rectangular boundaries, original crop '
+    'and all image contents, even when borderless or large. Image-internal text, logos, people and '
+    'buildings stay inside that image. Keep them within the image when describing, generating and '
+    'assembling it. Never turn them into separate native text, artistic headings or cutout subjects. '
+    'Preserve the image\'s original opacity, contrast and real white areas. Add no fog, haze, edge fade '
+    'or feathered blend. The background excludes these entire images. Scenery and subjects naturally '
+    'integrated into the page background stay together in that background. '
+)
+
+
 _LAYER_POLICY = (
-    'Divide the slide by layout role. Unframed scenery and subjects naturally blended into it stay '
+    'Divide the slide by layout role. ' + EMBEDDED_IMAGE_POLICY +
+    'Unframed scenery and subjects naturally blended into it stay '
     'together in the background, including people, vehicles, buildings and real branches or flowers. '
     'Separate page elements belong to the foreground: artistic headings, paper or card panels, '
-    'brush-stroke labels, icons and movable small illustrations. Ordinary body text and simple '
+    'brush-stroke labels, icons and movable small illustrations. Ordinary page text outside embedded images and simple '
     'layout geometry are native objects: absent from the background, present in the foreground '
     'reference. Do not isolate or duplicate a scene subject that stays in the background. '
 )
@@ -36,8 +49,9 @@ def layer_brief(role, transform, *, background_mode=None):
     if role == 'background':
         return (_LAYER_POLICY + 'Background task: Keep the scene and its integrated subjects at their '
             'original positions, with the same atmosphere, colours and surface detail. Remove only the '
-            'foreground page elements and native content defined above. Fill the areas they covered '
+            'foreground page elements, complete embedded images and native content defined above. Fill the areas they covered '
             'from the surrounding scene without removing its people, vehicles, architecture or plants. '
+            'The people and buildings inside removed embedded images leave with those images. '
             'Preserve the composition. Outer fitting margins stay empty white. Return one opaque PNG '
             'covering the full working rectangle. Geometry: ' + geometry)
     result=(_LAYER_POLICY + 'Foreground task: Keep only the separate page elements and native content '
@@ -77,7 +91,13 @@ def board_brief(board):
         if warnings:row['reference_warnings']=warnings
         if 'source_matte_collision_unresolved' in warnings:
             row['ignore_board_sealed_colour_blocks']=True
-        if member.get('lettering'): row['required_artistic_writing']=member['lettering']
+        if 'embedded_image' in member:
+            row['embedded_image']=member['embedded_image']
+        if member.get('embedded_image') is True:
+            row['presentation']='rectangle'
+            if member.get('lettering'):row['image_internal_writing']=member['lettering']
+        elif member.get('lettering'):
+            row['required_artistic_writing']=member['lettering']
         assignments.append(row)
     reference_roles={'layout_image':1,'appearance_image':2,'add_white_sticker_outline':False,
                      'add_green_fringe':False,'preserve_source_white_edges':True}
@@ -128,6 +148,8 @@ def board_brief(board):
             'a layout helper with possible matte contamination: use image 2 for material and original edges, '
             'and do not copy sealed matte-coloured blocks from the board into the subject. ', '')
         result += ' '+_NATIVE_ALPHA
+    if any(member.get('embedded_image') is True for member in board['members']):
+        result += ' '+EMBEDDED_IMAGE_POLICY
     return result
 
 

@@ -14,9 +14,9 @@ from .wordart import MODE as WORDART_MODE, select_primary_wordart, validate_word
 from .layout import normalize_layout
 from .renderer import build_presentation
 from .source import prepare_source, pixel_identity, normalize_layer
-from .prompts import layer_brief, board_brief, wordart_brief
+from .prompts import layer_brief, board_brief, wordart_brief, EMBEDDED_IMAGE_POLICY
 from .native import MODE as MATERIAL_MODE, validate_native_output
-from . import execution, version, binding
+from . import execution, version, binding, recovery
 from .storage import fingerprint, sha256, read_state, save_state, write_json, relative_file, job_lock
 
 
@@ -100,6 +100,9 @@ def _public_task(work, task):
         value.update(transparent_background=True,background_mode=MATERIAL_MODE)
     value=execution.decorate(work,task,value)
     if task.get('delivery_policy')==binding.DELIVERY_POLICY:value=binding.decorate_task(task,value)
+    if task.get('bounded_recovery'):
+        value['bounded_recovery']=copy.deepcopy(task['bounded_recovery'])
+        value['execution_contract']['recovery_policy']=recovery.MODE
     return value
 
 
@@ -123,6 +126,23 @@ def _registration_task(work, task, strict=True):
     if task.get('delivery_policy')==binding.DELIVERY_POLICY:
         value['result_template']['request_sha256']=task['execution'].get('request_sha256','')
         value.update(role_review_template=binding.review_template(task),role_review_scope=binding.REVIEW_SCOPE)
+    if task.get('registration'):
+        saved=task['registration']
+        value['result_template']['file']=str(relative_file(work,saved['raw'])) if saved.get('raw') else ''
+        value['registration_reason']=saved['reason']
+        if saved.get('invocation_count') is not None:value['result_template']['invocation_count']=saved['invocation_count']
+        if saved.get('output_count') is not None:value['result_template']['output_count']=saved['output_count']
+    if task.get('surplus_registration'):
+        saved=task['surplus_registration']
+        outputs=[]
+        for entry in saved['returns']:
+            review=binding.review_template(task)
+            review.update(entry.get('declared_role_review') or {})
+            review.update(role=task['role'],output_sha256=entry['sha256'])
+            outputs.append({'file':str(relative_file(work,entry['raw'])),'role_review':review,
+                            'tool_output_id':entry.get('tool_output_id')})
+        value['result_template'].update(invocation_count=1,output_count=saved['output_count'],
+            file=outputs[0]['file'],returned_files=[entry['file'] for entry in outputs],returned_outputs=outputs)
     return value
 
 
@@ -196,7 +216,8 @@ def _generation_violation(work, state, task, data, observation, evidence):
                 and isinstance(entry.get('file'),str) and Path(entry['file']).resolve()==path),{})
             claim={**data,'tool':supplied.get('tool',data.get('tool')),
                    'tool_output_id':supplied.get('tool_output_id')}
-            try:binding.claim_return(work,state,task,claim,path,digest)
+            try:binding.claim_return(work,state,task,claim,path,digest,
+                                     incomplete_registration=recovery.enabled(state))
             except binding.BindingViolation as exc:binding_errors.append({'sha256':digest,'reason':str(exc)[:500]})
             except (ValueError,OSError):pass
     identity=fingerprint([task['attempt'],data.get('invocation_count'),data.get('output_count'),
@@ -258,6 +279,7 @@ def _integrity(work, state):
         if layout != state['layout']: raise ValueError('The single submitted page description changed.')
     for task in state['tasks'].values():
         pairs={task['brief']:task['brief_sha256'],**task['references']}
+        pairs.update({entry['brief']:entry['brief_sha256'] for entry in task.get('brief_history',[])})
         if task.get('result'):
             result=task['result'];pairs[result['raw']]=result['sha256']
             if result.get('normalized'): pairs[result['normalized']]=result['normalized_sha256']
@@ -386,6 +408,8 @@ def _finish(work, state):
                            post_return_prompt_audit=execution.prompt_audit_summary(state))
         if binding.enabled(state):
             receipt.update(delivery_policy=binding.DELIVERY_POLICY,output_role_binding=binding.summary(state))
+        if recovery.enabled(state):
+            receipt.update(recovery_policy=recovery.MODE,recovery=copy.deepcopy(state['recovery']))
     write_json(Path(work)/'receipt.json',receipt)
     state.update(phase='done',done=receipt)
     save_state(work,state,'presentation_published')
@@ -393,6 +417,12 @@ def _finish(work, state):
 
 
 def _pending_response(work,state,tasks):
+    incomplete=[task for task in tasks if task.get('registration') or task.get('surplus_registration')]
+    if recovery.enabled(state) and incomplete:
+        return {'kind':'registration_required','generate_more':False,
+                'tasks':[task['id'] for task in incomplete],
+                'pending_results':[_registration_task(work,task,True) for task in incomplete],
+                'instructions':'Inspect the saved existing output and complete this registration. Preserve the recorded request and image. No image invocation is permitted by this response.'}
     if execution.enabled(state):
         not_started=[t for t in tasks if t['execution']['state']=='not_started']
         if not_started:
@@ -411,6 +441,15 @@ def _response(state,value):
         if state.get('post_return_prompt_policy') is not None:
             value['post_return_prompt_policy']=state['post_return_prompt_policy']
         if binding.enabled(state):value['delivery_policy']=binding.DELIVERY_POLICY
+        if recovery.enabled(state):
+            value['recovery_policy']=recovery.MODE
+            value['recovery']=copy.deepcopy(state['recovery'])
+            for task in value.get('jobs',[]):
+                task['execution_contract']['instructions']='Submit the exact begin_template request. Invoke once only after its first invoke_once reply. Save and register the actual return with caller-reported counts and pixel-based role_review. Preserve all originals. Report unexpected extras in return order using returned_outputs. Source/reference files and other-task outputs cannot be submitted as returns.'
+                if 'role_review_scope' in task:
+                    task['role_review_scope']+=' Embedded images remain complete foreground rectangles, including their internal text, logos and people.'
+            if value.get('kind')=='generate':
+                value['instructions']='Prepare the listed attempts and submit begin_template. Call the image tool only after the first invoke_once reply for that exact attempt. Preserve completed assets and all existing returns.'
         if state.get('execution_hold'):value['remaining_generation_stopped']=True
         if value.get('kind')=='generate':
             value['instructions']='These are preparation cards, not image-call permits. Submit begin_template and invoke only after the first invoke_once reply. '+value.get('instructions','')
@@ -425,14 +464,25 @@ def _hold_response(tasks):
 
 
 def _drive(work,state):
+    incomplete=[task for task in state['tasks'].values() if task.get('surplus_registration')]
+    incomplete_ids={task['id'] for task in incomplete}
+    reviewable=all(task['id'] in incomplete_ids and entry.get('invocation_count')==1
+                   and not entry.get('binding_errors') and not entry.get('returned_outputs_inconsistent')
+                   for task in state['tasks'].values() for entry in task.get('generation_violations',[])
+                   if not entry.get('acknowledged'))
+    if recovery.enabled(state) and incomplete and reviewable and not state.get('execution_hold'):
+        return _pending_response(work,state,incomplete)
     violations=_pending_generation_violations(state)
     if violations:
         return {'kind':'paused','tasks':violations,'generate_more':False,
             'reason':'generation_budget_exceeded',
             'instructions':'Known extra generation or outputs were reported. Preserve all existing files and stop image calls. Ask the user whether to retain an existing result. A submission with violation_authorization quoting that user request accepts an existing output for the named task only; it does not authorize another invocation or complete other tasks. If the user prohibits remaining generation and an actual output is missing, keep the job unfinished and report it; never substitute reference inputs or manufacture completion.'}
+    recovery.prepare(work,state)
     failed=[t['id'] for t in state['tasks'].values() if t['status']=='failed']
     if failed:
         return {'kind':'paused','tasks':failed,'generate_more':False,
+            **({'failures':[{'task_id':t['id'],'kind':t.get('failure_kind'),'reason':t.get('failure')}
+                            for t in state['tasks'].values() if t['status']=='failed']} if recovery.enabled(state) else {}),
             'instructions':'Keep completed files. Retry registration with an existing real output, or reopen a failed task only after the user requests another generation.'}
     if state['phase']=='layers':
         layers=[t for t in state['tasks'].values() if t['role'] in {'background','foreground'}]
@@ -449,7 +499,7 @@ def _drive(work,state):
     if state['phase']=='describe':
         return {'kind':'describe','files':[str(relative_file(work,state['source'][k])) for k in ('working','guide')],
             'reply_template':{'kind':'layout','layout':{'items':[]}},
-            'instructions':'Read only these same-source images. Describe structures, each visible native text line, and independent artwork once. For artistic-writing items, fill lettering with all exact source characters and description with colours, brushwork, original outlines, material and arrangement. The largest artistic-writing group alone will use standalone true-alpha generation; all other art keeps the existing board route. Artistic lettering stays an art item; generated foreground is not a source of text or geometry facts. Complete this in the existing one-pass description, with no extra analysis call.'}
+            'instructions':'Read only these same-source images. Describe structures, each visible native text line, and independent artwork once. For artistic-writing items, fill lettering with all exact source characters and description with colours, brushwork, original outlines, material and arrangement. The largest artistic-writing group alone will use standalone true-alpha generation; all other art keeps the existing board route. Artistic lettering stays an art item; generated foreground is not a source of text or geometry facts. Complete this in the existing one-pass description, with no extra analysis call. '+EMBEDDED_IMAGE_POLICY+' For each standalone embedded image use one art item with embedded_image:true and its full rectangular box. Image-internal writing remains inside that artwork; independent page text keeps its native-text or artistic-lettering route.'}
     if state['phase']=='boards':
         active=[state['tasks'][i] for i in state.get('active_batch',[])]
         waiting=[t['id'] for t in active if t['status']!='recorded']
@@ -480,7 +530,8 @@ def _adopt_single_call_surplus(work,state,task,data,observation):
     if any(identity!=task['id'] for identity in _pending_generation_violations(state)):return False
     if any(not v.get('acknowledged') and v.get('invocation_count')!=1 for v in task.get('generation_violations',[])):return False
     if any(not isinstance(entry,dict) or not isinstance(entry.get('file'),str)
-           or not Path(entry['file']).is_file() or not isinstance(entry.get('role_review'),dict) for entry in outputs):return False
+           or not Path(entry['file']).is_file()
+           or (not recovery.enabled(state) and not isinstance(entry.get('role_review'),dict)) for entry in outputs):return False
     paths=[str(Path(entry['file']).resolve()) for entry in outputs]
     if data.get('returned_files') is not None and [str(Path(p).resolve()) for p in data['returned_files']]!=paths:return False
     if data.get('file') and str(Path(data['file']).resolve())!=paths[0]:return False
@@ -491,13 +542,14 @@ def _adopt_single_call_surplus(work,state,task,data,observation):
     preserved={entry['sha256']:entry['raw'] for entry in violation['preserved_files']}
     returns=[{'index':i,'sha256':sha256(path),'raw':preserved[sha256(path)],
               'tool':outputs[i].get('tool',data.get('tool')),'tool_output_id':outputs[i].get('tool_output_id'),
-              'declared_role_review':binding.review_evidence(outputs[i]['role_review'])} for i,path in enumerate(paths)]
+              'declared_role_review':binding.review_evidence(outputs[i].get('role_review'))} for i,path in enumerate(paths)]
     # Claim every known return before choosing one. Unselected files are still
     # from this declared invocation and cannot be relabelled as another task.
     binding_failed=False
     for index,entry in enumerate(outputs):
         claim={**data,'tool':entry.get('tool',data.get('tool')),'tool_output_id':entry.get('tool_output_id')}
-        try:binding.claim_return(work,state,task,claim,Path(paths[index]),returns[index]['sha256'])
+        try:binding.claim_return(work,state,task,claim,Path(paths[index]),returns[index]['sha256'],
+                                 incomplete_registration=recovery.enabled(state))
         except binding.BindingViolation as exc:
             binding_failed=True
             task.update(status='failed',failure='Image result binding: '+str(exc))
@@ -507,6 +559,10 @@ def _adopt_single_call_surplus(work,state,task,data,observation):
         except (ValueError,OSError):
             pass  # Broken images remain owned/preserved and fail selection below.
     if binding_failed:
+        if recovery.enabled(state):
+            task.update(failure_kind='binding',hard_binding_failure=True)
+            task.pop('registration',None)
+            task.pop('surplus_registration',None)
         for entry in returns:entry.setdefault('outcome','preserved_not_selected')
         task['surplus_resolution']={'policy':binding.DELIVERY_POLICY,'selected_index':None,'returns':returns,
             'invocation_count':1,'output_count':count,'hard_binding_failure':True,
@@ -518,23 +574,35 @@ def _adopt_single_call_surplus(work,state,task,data,observation):
         if [(e['index'],e['sha256']) for e in previous['returns']]!=[(e['index'],e['sha256']) for e in returns]:
             raise ValueError('The first surplus-return order and output ownership are immutable.')
         selected=previous.get('selected_index')
-        if selected is None:return True
-        entry=outputs[selected]
-        selected_data={k:v for k,v in data.items() if k not in {'returned_outputs','returned_files','role_review','tool_output_id'}}
-        selected_data.update(file=paths[selected],role_review=entry['role_review'],tool_output_id=entry.get('tool_output_id'))
-        if entry.get('tool') is not None:selected_data['tool']=entry['tool']
-        _submit(work,state,selected_data,_surplus=True);return True
+        if selected is None and not previous.get('registration_incomplete'):return True
+        if previous.get('registration_incomplete'):
+            selected=None
+        else:
+            entry=outputs[selected]
+            selected_data={k:v for k,v in data.items() if k not in {'returned_outputs','returned_files','role_review','tool_output_id'}}
+            selected_data.update(file=paths[selected],role_review=entry['role_review'],tool_output_id=entry.get('tool_output_id'))
+            if entry.get('tool') is not None:selected_data['tool']=entry['tool']
+            _submit(work,state,selected_data,_surplus=True);return True
     selected=None
     for index,entry in enumerate(outputs):
         candidate={k:v for k,v in data.items() if k not in {'returned_outputs','returned_files','role_review','tool_output_id'}}
         # Only output-specific evidence may differ; task identity and locked
         # request binding remain the top-level invocation's immutable values.
-        candidate.update(file=paths[index],role_review=entry['role_review'],tool_output_id=entry.get('tool_output_id'))
+        candidate.update(file=paths[index],role_review=entry.get('role_review'),tool_output_id=entry.get('tool_output_id'))
         if entry.get('tool') is not None:candidate['tool']=entry['tool']
         try:
-            _submit(work,state,candidate,_surplus=True)
+            response=_submit(work,state,candidate,_surplus=True)
         except (ValueError,OSError) as exc:
             returns[index]['outcome']='rejected';returns[index]['reason']=str(exc)[:500]
+            continue
+        if recovery.enabled(state) and isinstance(response,dict) and response.get('kind')=='registration_required':
+            task['surplus_registration']={'returns':returns,'output_count':count}
+            task['surplus_resolution']={'policy':binding.DELIVERY_POLICY,'selected_index':None,'returns':returns,
+                'invocation_count':1,'output_count':count,'registration_incomplete':True,
+                'selection':'Await the existing returns in their original order; no new invocation is permitted.'}
+            save_state(work,state,'surplus_registration_required');return True
+        if recovery.enabled(state) and task['status']!='recorded':
+            returns[index].update(outcome='rejected',reason=task.get('failure','Existing return failed validation.'))
             continue
         selected=index;returns[index]['outcome']='selected';break
     for entry in returns:
@@ -543,6 +611,7 @@ def _adopt_single_call_surplus(work,state,task,data,observation):
         'invocation_count':1,'output_count':count,'provenance':'caller_declared_single_invocation_and_return_order_not_provider_verified',
         'selection':'first technically valid, source-safe and host-role-reviewed existing return; no appearance ranking or new invocation'}
     if selected is not None:
+        task.pop('surplus_registration',None)
         violation.update(acknowledged=True,resolution='first_usable_existing_return_by_frozen_policy',
                          resolution_policy=binding.DELIVERY_POLICY)
         state['warnings'].append({'code':'single_call_surplus_adopted','task_id':task['id'],
@@ -634,7 +703,10 @@ def _submit(work,state,data,_surplus=False):
             quote=_authorization(data.get('violation_authorization'),'violation_authorization')
             state['execution_hold']={'authorization':quote,'provenance':'caller_reported_user_request_not_verified'}
             save_state(work,state,'remaining_generation_stopped')
-        if _adopt_single_call_surplus(work,state,task,data,observation):return
+        if _adopt_single_call_surplus(work,state,task,data,observation):
+            if recovery.enabled(state) and task.get('surplus_registration'):
+                return _pending_response(work,state,[task])
+            return
     if execution.enabled(state) and data.get('file') and not task.get('result'):
         task['execution']['state']='returned'
     authorization=None;evidence=None
@@ -650,6 +722,8 @@ def _submit(work,state,data,_surplus=False):
             if any(entry.get('acknowledged') and entry.get('authorization')==authorization
                    for entry in task.get('generation_violations',[])):
                 authorization=None  # Re-registering the identical accepted file is idempotent.
+            elif recovery.enabled(state) and data.get('stop_remaining_generation'):
+                authorization=None
             else:
                 raise ValueError('No pending generation violation belongs to this task; authorization cannot apply to another task.')
     if execution.enabled(state) and data.get('stop_remaining_generation'):
@@ -657,19 +731,45 @@ def _submit(work,state,data,_surplus=False):
         hold={'authorization':quote,'provenance':'caller_reported_user_request_not_verified'}
         if state.get('execution_hold')!=hold:
             state['execution_hold']=hold;save_state(work,state,'remaining_generation_stopped')
-    if task['role']=='foreground' and any(t['role']=='background' and t['status']!='recorded' for t in state['tasks'].values()):
+    if task['role']=='foreground' and any(t['role']=='background' and t['status']!='recorded' for t in state['tasks'].values()) and not (recovery.enabled(state) and data.get('outcome')=='failed'):
         raise ValueError('Keep this foreground file and register the background first.')
     if data.get('outcome')=='failed':
         if task.get('result'): raise ValueError('A recorded first result cannot be replaced by a failure.')
         if not isinstance(data.get('reason'),str) or not data['reason'].strip() or len(data['reason'])>1000:
             raise ValueError('A failed invocation needs a short sanitized reason.')
+        pending=recovery.pending_return(task) if recovery.enabled(state) else None
+        if pending:
+            task['registration']=pending
+            report={'attempt':task['attempt'],'reason':data['reason'],
+                    'invocation_count':data.get('invocation_count'),'output_count':data.get('output_count'),
+                    'provenance':'caller_reported_followup_not_provider_verified',
+                    'resolution':'review_existing_return_before_generation_failure_recovery'}
+            reports=task.setdefault('registration_failure_reports',[])
+            if report not in reports:
+                reports.append(report)
+                save_state(work,state,'existing_output_review_required')
+            return _hold_response([task]) if state.get('execution_hold') else _pending_response(work,state,[task])
         if task['status']=='failed' and task.get('failure')==data['reason']:return
-        task.update(status='failed',failure=data['reason'])
+        hard_binding=recovery.enabled(state) and task.get('hard_binding_failure')
+        task.update(status='failed')
+        if not hard_binding:task['failure']=data['reason']
         if execution.enabled(state):task['execution']['state']='failed'
-        task['attempts'].append({**observation,'outcome':'failed','reason':data['reason']})
+        if recovery.enabled(state) and not hard_binding:task['failure_kind']='generation_failure'
+        task['attempts'].append({**observation,'outcome':'generation_failure' if recovery.enabled(state) else 'failed','reason':data['reason']})
         save_state(work,state,'generation_paused');return
-    if not data.get('file'): raise ValueError('Record an actual saved image file.')
+    if not data.get('file'):
+        if recovery.enabled(state):
+            task['registration']={**(recovery.pending_return(task) or {}),
+                                  'reason':'Record the actual saved image file, or complete its pending role review.'}
+            save_state(work,state,'registration_required')
+            return _pending_response(work,state,[task])
+        raise ValueError('Record an actual saved image file.')
     path=Path(data['file']).resolve()
+    if recovery.enabled(state) and not path.is_file():
+        task['registration']={**(recovery.pending_return(task) or {}),
+                              'reason':'The supplied file is missing. Register the preserved real output if available.'}
+        save_state(work,state,'registration_required')
+        return _pending_response(work,state,[task])
     digest=sha256(path)
     if task.get('result'):
         if digest!=task['result']['sha256']: raise ValueError('The first registered output is immutable.')
@@ -692,11 +792,16 @@ def _submit(work,state,data,_surplus=False):
     key='magenta' if task['role']=='foreground' else task['board']['key'] if task['role']=='board' else None
     native_normalized=None
     bound=None
+    validation_stage='binding'
     try:
         if execution.enabled(state) and state.get('post_return_prompt_policy')!=execution.POST_RETURN_PROMPT_POLICY:
             execution.check_reported_prompt(work,task,data)
         _reject_reference_board_return(work,task,path,digest)
-        if binding.enabled(state):bound=binding.validate_return(work,state,task,data,path,digest)
+        if binding.enabled(state):
+            validation_stage='decoding'
+            bound=binding.validate_return(work,state,task,data,path,digest,
+                                          incomplete_registration=recovery.enabled(state))
+        validation_stage='material'
         validation=(validate_wordart_output(path) if task['role']=='wordart' else
                     validate_native_output(path,role=task['role']) if _native_material_task(task) else
                     validate_output(path,key=key))
@@ -706,6 +811,37 @@ def _submit(work,state,data,_surplus=False):
                             background_mode=MATERIAL_MODE)
             validate_native_output(native_normalized,role='foreground')
     except (ValueError,OSError) as exc:
+        if recovery.enabled(state):
+            category=('registration_required' if isinstance(exc,binding.RegistrationRequired) else
+                      'binding' if isinstance(exc,binding.BindingViolation) else
+                      'role_mismatch' if isinstance(exc,binding.RoleMismatch) else validation_stage)
+            preserved=recovery.preserve(work,task,path,digest)
+            review=binding.review_evidence(data.get('role_review'))
+            entry={**observation,'outcome':category,'sha256':digest,'raw':preserved,
+                   'reason':str(exc)[:1000],'role_review':review}
+            if isinstance(review,dict):entry['observed']=review.get('observed')
+            previous=task['attempts'][-1] if task['attempts'] else {}
+            same=all(previous.get(key)==entry.get(key) for key in ('attempt','outcome','sha256','reason','role_review'))
+            if not same:task['attempts'].append(entry)
+            if category=='registration_required':
+                if task['status']=='failed' and not _surplus:
+                    if not same:save_state(work,state,'failed_output_registration_incomplete')
+                    return _drive(work,state)
+                if _surplus:
+                    task.update(status='waiting')
+                    task.pop('failure',None)
+                    task.pop('failure_kind',None)
+                task['registration']={'raw':preserved,'sha256':digest,'reason':str(exc)[:1000],
+                                      'invocation_count':data.get('invocation_count'),'output_count':data.get('output_count')}
+                if not same:save_state(work,state,'registration_required')
+                return _pending_response(work,state,[task])
+            task.update(status='failed',failure=str(exc)[:1000],failure_kind=category)
+            if category=='binding':task['hard_binding_failure']=True
+            task.pop('registration',None)
+            task['execution']['state']='failed'
+            save_state(work,state,'image_'+category)
+            if category=='binding':raise
+            return
         task.update(status='failed',failure='Image registration: '+str(exc)[:500])
         preserved=Path(work)/'returned'/f"{task['id']}-{task['attempt']}-{digest[:16]}-unusable.bin"
         preserved.parent.mkdir(exist_ok=True)
@@ -752,12 +888,15 @@ def _submit(work,state,data,_surplus=False):
         _acknowledge_violations(task,authorization,'accept_existing_output_without_generation')
     task['attempts'].append({**observation,'outcome':'recorded','raw':result['raw'],'sha256':digest})
     task.pop('failure',None)
+    task.pop('failure_kind',None)
+    task.pop('registration',None)
     state['warnings'].extend(validation.get('warnings',[]))
     save_state(work,state,'image_registered')
 
 
 def run(work, *, source=None, data=None, retry_task=None, retry_authorization=None,
-        execution_policy=None,expected_package=None,post_return_prompt_policy=None,delivery_policy=None):
+        execution_policy=None,expected_package=None,post_return_prompt_policy=None,delivery_policy=None,
+        recovery_policy=None):
     """Advance only explicitly identified work; external generation stays external."""
     if sum(value is not None for value in (source,data,retry_task))>1:
         raise ValueError('Use a source, a submission, or an explicit retry, one at a time.')
@@ -766,7 +905,10 @@ def run(work, *, source=None, data=None, retry_task=None, retry_authorization=No
     if execution_policy not in (None,execution.MODE):raise ValueError('Unsupported execution policy.')
     execution.validate_prompt_policy(post_return_prompt_policy)
     binding.validate_policy(delivery_policy)
+    recovery.validate_policy(recovery_policy)
     work=Path(work).resolve()
+    if recovery_policy is not None and not (work/'state.json').exists() and not (work/'initialization.json').exists():
+        recovery.require_dependencies(execution_policy,delivery_policy)
     if post_return_prompt_policy is not None and not (work/'state.json').exists() and not (work/'initialization.json').exists() and execution_policy!=execution.MODE:
         raise ValueError('The post-return prompt policy requires an explicit execution policy.')
     if delivery_policy is not None and not (work/'state.json').exists() and not (work/'initialization.json').exists() and execution_policy!=execution.MODE:
@@ -786,6 +928,7 @@ def run(work, *, source=None, data=None, retry_task=None, retry_authorization=No
                 raise ValueError('A saved job cannot change execution policy or be silently migrated.')
             execution.frozen_prompt_policy(work,state,post_return_prompt_policy)
             binding.frozen_policy(work,state,delivery_policy)
+            recovery.frozen_policy(work,state,recovery_policy)
             if execution.enabled(state):
                 if version.runtime_identity(expected_package)!=state.get('runtime_identity'):
                     raise ValueError('The runtime identity changed; use this job with its original verified package.')
@@ -821,6 +964,11 @@ def run(work, *, source=None, data=None, retry_task=None, retry_authorization=No
                 if delivery_policy is not None and delivery_policy!=marker_delivery_policy:
                     raise ValueError('An interrupted initialization cannot change delivery policy.')
                 delivery_policy=marker_delivery_policy
+                marker_recovery_policy=recovery.validate_policy(marker.get('recovery_policy'))
+                if recovery_policy is not None and recovery_policy!=marker_recovery_policy:
+                    raise ValueError('An interrupted initialization cannot change recovery policy.')
+                recovery_policy=marker_recovery_policy
+                if recovery_policy is not None:recovery.require_dependencies(execution_policy,delivery_policy)
                 if delivery_policy is not None and execution_policy!=execution.MODE:
                     raise ValueError('The delivery policy requires explicit execution records.')
                 if post_return_prompt_policy is not None and execution_policy!=execution.MODE:
@@ -844,6 +992,7 @@ def run(work, *, source=None, data=None, retry_task=None, retry_authorization=No
                 if post_return_prompt_policy is not None:
                     marker['post_return_prompt_policy']=post_return_prompt_policy
                 if delivery_policy is not None:marker['delivery_policy']=delivery_policy
+                if recovery_policy is not None:marker['recovery_policy']=recovery_policy
                 write_json(initialization,marker)
             _runtime()
             src=prepare_source(source,work)
@@ -860,6 +1009,8 @@ def run(work, *, source=None, data=None, retry_task=None, retry_authorization=No
             if post_return_prompt_policy is not None:
                 state['post_return_prompt_policy']=post_return_prompt_policy
             if delivery_policy is not None:state['delivery_policy']=delivery_policy
+            if recovery_policy is not None:
+                state.update(recovery_policy=recovery_policy,recovery={'used':0,'limit':1})
             for role in ('background','foreground'):
                 mode={'background_mode':MATERIAL_MODE} if role=='foreground' else {}
                 identity={'source_pixel_sha256':src['pixel_sha256'],**mode} if mode else src['pixel_sha256']
@@ -888,6 +1039,8 @@ def run(work, *, source=None, data=None, retry_task=None, retry_authorization=No
             task.update(status='waiting',issued=True,attempt=task['attempt']+1)
             if execution.enabled(state):execution.reset_for_retry(task)
             task.pop('failure',None)
+            task.pop('failure_kind',None)
+            task.pop('registration',None)
             save_state(work,state,'explicit_retry')
             return _response(state,{'kind':'generate','jobs':[_public_task(work,task)],'instructions':'Explicitly reopened task only; keep every completed result.'})
         if data is not None:

@@ -1,9 +1,13 @@
 # Known limits
 
-- Image-provider execution, exact visual fidelity, billing and end-to-end time depend on the host and are not certified by local tests. This distribution-only revision adds no provider, quality, timing or Office acceptance results.
-- Native body text/basic geometry remain editable; complex artwork is a movable PNG, not editable lettering.
-- Coordinate labels depend on installed font metrics. Alternate-font edge-label omissions remain a known limitation; guide25/50/5 and coordinate-guide code are unchanged.
-- Exact Microsoft YaHei is not bundled. Missing matching fonts use an explicitly estimated bounded fit.
-- Raw private diagnostics are optional developer regressions and are not distributed. The ordinary runtime archive excludes development and historical materials; source-only historical validation records are not new runtime acceptance evidence.
-- The 20261105 archive is newly packaged. Its 423 runtime files and internal package identity remain unchanged; verify the current archive SHA256 and embedded manifests rather than the previous archive hash.
-- The preserved 20261025 native-space fix covers ordinary ASCII spaces in missing-font width estimation; genuine text overflow can still stop delivery. Ownership-proved transparent gutters recover more components, while unknown or crossing content remains protected.
+- The current `2026.11.08-flow.r1` runtime archive contains 784 members, including 425 runtime files and 394 dependency files. Its root and runtime identity are `PPT Rebuilder King-20261108-flow-r1`. Use the current SHA256SUMS and both embedded inventories to identify the download.
+- The complete runtime archive includes workflow, dependencies, project instructions and supporting engineering material. Private user jobs, personal logs and optional private diagnostic fixtures remain outside the public distribution.
+- New jobs use `bounded-recovery/1`. A controller-issued repair may add at most one image call across the whole job. Missing registration fields require truthful completion of the existing receipt. Exhausted repair budgets, binding conflicts, unknown or excess invocation counts and a user stop preserve the job for inspection.
+- Independent photographs, screenshots, scans and collage images retain their complete rectangular foreground role, including internal writing and people. Layout uses `art.embedded_image:true`. Host observation and truthful role reviews remain necessary to establish whether a returned image follows that role.
+- Provider execution, image fidelity, billing and end-to-end time depend on the host and require their own evidence. The recorded local regression and CLI replay cover local behavior and file handling.
+- Native body text and supported basic geometry are editable objects. Complex artwork is a movable PNG whose internal lettering remains image content. Formula and table support has a defined structural scope.
+- Coordinate labels depend on installed font metrics. Alternate-font edge-label omissions remain a known limitation. The working canvas is 1920×1080 with 25/50/5 guides.
+- Microsoft YaHei is supplied by the host. Missing matching fonts use explicitly estimated bounded text fitting, with a maximum font-size reduction of 25 percent. Genuine text overflow can stop delivery.
+- Transparent materials require genuine PNG alpha and clear ownership. Ambiguous or crossing content, false transparency and damaged outputs can remain rejected. Successful local extraction alone establishes neither model fidelity nor a complete visual review.
+- Explicit diagnostic export reads the selected job. Its parent output directory must exist and its filesystem must support atomic hard-link publication. A warning about no recorded image invocation requires checking the selected job path.
+- Optional private diagnostic regressions report their skip reasons. Office display, manual editing, full-page fidelity and cross-platform behavior require matching sample and environment evidence. Historical Office checks are identified separately in the release validation record.

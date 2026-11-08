@@ -13,11 +13,20 @@ def main(argv=None):
     inputs.add_argument('--source',type=Path)
     inputs.add_argument('--input',type=Path)
     inputs.add_argument('--retry-task',help='Only after the user explicitly requests a new invocation')
+    inputs.add_argument('--diagnostics',type=Path,metavar='OUTPUT_ZIP',
+                        help='Read only this exact existing --work directory into a new external ZIP')
     parser.add_argument('--retry-authorization',help='Quote the explicit user request authorizing this failed-task retry; recorded caller assertion, not verified identity')
     parser.add_argument('--expected-package',help='Require this exact package identity; a mismatch stops before generation')
     args=parser.parse_args(argv)
+    if args.diagnostics is not None and args.retry_authorization is not None:
+        parser.error('--diagnostics cannot be combined with --retry-authorization')
     if hasattr(sys.stdout,'reconfigure'):sys.stdout.reconfigure(encoding='utf-8')
     try:
+        if args.diagnostics is not None:
+            from .diagnostics import export_diagnostics
+            result=export_diagnostics(args.work,args.diagnostics)
+            print(json.dumps(result,ensure_ascii=False,indent=2))
+            return 0
         from .controller import run
         data=json.loads(args.input.read_text(encoding='utf-8-sig')) if args.input else None
         options={}
@@ -30,8 +39,10 @@ def main(argv=None):
             options.update(execution_policy=MODE,expected_package=args.expected_package or PACKAGE_ID)
             if not (args.work/'initialization.json').exists():
                 from .binding import DELIVERY_POLICY
+                from .recovery import MODE as RECOVERY_POLICY
                 options['post_return_prompt_policy']=POST_RETURN_PROMPT_POLICY
                 options['delivery_policy']=DELIVERY_POLICY
+                options['recovery_policy']=RECOVERY_POLICY
         elif args.expected_package is not None:
             options['expected_package']=args.expected_package
         result=run(args.work,source=args.source,data=data,retry_task=args.retry_task,

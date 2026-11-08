@@ -212,6 +212,83 @@ class RepackRuntime(unittest.TestCase):
             self.build()
         self.assertFalse((self.root / 'out').exists())
 
+    def prepare_complete_archive(self):
+        runtime = self.expected
+        data = {'compat-runtime/' + name: body for name, body in runtime.items()}
+        data['PROJECT_INSTRUCTIONS.txt'] = (self.source / 'PROJECT_INSTRUCTIONS.txt').read_bytes()
+        data['PACKAGE_MANIFEST.json'] = repack.encoded({
+            'format': 'ppt-rebuilder.quality-test/1', 'package_id': repack.BASELINE_ROOT,
+            'archive_name': 'approved-complete.zip',
+            'runtime_manifest_sha256': repack.sha(runtime['MANIFEST.json']),
+            'files': repack.inventory(data),
+        })
+        baseline = self.root / 'complete.zip'
+        repack.pack(baseline, repack.BASELINE_ROOT, data, 1793836800)
+        digest = repack.sha(baseline.read_bytes())
+        snapshot = json.loads(runtime['MANIFEST.json'])['source_snapshot_sha256']
+        for key, value in {
+            'COMPLETE_ARCHIVE_SHA256': digest, 'COMPLETE_ARCHIVE_ROOT': repack.BASELINE_ROOT,
+            'COMPLETE_ARCHIVE_NAME': 'approved-complete.zip',
+            'COMPLETE_ARCHIVE_MEMBERS': len(data), 'COMPLETE_RUNTIME_COUNT': len(runtime),
+            'COMPLETE_RUNTIME_MANIFEST_SHA256': repack.sha(runtime['MANIFEST.json']),
+            'COMPLETE_RUNTIME_SNAPSHOT_SHA256': snapshot,
+        }.items():
+            active = patch.object(repack, key, value)
+            active.start()
+            self.addCleanup(active.stop)
+        self.meta.update({
+            'archive_name': 'approved-complete.zip', 'archive_root': repack.BASELINE_ROOT,
+            'source_archive_root': repack.ARCHIVE_ROOT + '-source',
+            'project_instructions_name': 'project-instructions.txt',
+            'sha256sums_name': 'SHA256SUMS.txt',
+            'distribution_mode': 'approved-complete-archive',
+            'approved_artifact': {'sha256': digest, 'bytes': baseline.stat().st_size,
+                                  'members': len(data), 'archive_root': repack.BASELINE_ROOT},
+            'runtime': {'files': len(runtime), 'manifest_sha256': repack.sha(runtime['MANIFEST.json']),
+                        'source_snapshot_sha256': snapshot},
+        })
+        (self.source / 'compat-runtime/SKILL.md').write_bytes(runtime['SKILL.md'])
+        self.baseline = baseline
+
+    def test_complete_release_exports_exact_optional_prompt_and_checksums(self):
+        self.prepare_complete_archive()
+        self.meta['prompt_name'] = 'restore-prompt.txt'
+        (self.source / 'PROMPT.txt').write_bytes(b'Restore the supplied screenshot.\n')
+        self.write('RELEASE.json', json.dumps(self.meta))
+        result = self.build()
+        self.assertIn('prompt', result)
+        prompt = Path(result['prompt'])
+        self.assertEqual(prompt.read_bytes(), b'Restore the supplied screenshot.\n')
+        self.assertEqual(Path(result['runtime']).read_bytes(), self.baseline.read_bytes())
+        source = repack.read_archive(result['source'])
+        self.assertEqual(source[repack.ARCHIVE_ROOT + '-source/PROMPT.txt'], prompt.read_bytes())
+        self.assertEqual(len(list(prompt.parent.iterdir())), 5)
+        checksums = Path(result['checksums']).read_text(encoding='utf-8').splitlines()
+        self.assertEqual(len(checksums), 4)
+        self.assertIn(repack.sha(prompt.read_bytes()) + '  restore-prompt.txt', checksums)
+
+    def test_complete_release_without_prompt_keeps_existing_companions(self):
+        self.prepare_complete_archive()
+        self.write('RELEASE.json', json.dumps(self.meta))
+        result = self.build()
+        self.assertNotIn('prompt', result)
+        self.assertEqual(len(list(Path(result['checksums']).parent.iterdir())), 4)
+        self.assertEqual(len(Path(result['checksums']).read_text(encoding='utf-8').splitlines()), 3)
+
+    def test_invalid_complete_prompt_fails_before_output_creation(self):
+        self.prepare_complete_archive()
+        cases = [('restore-prompt.txt', False), ('../outside.txt', True),
+                 ('PROJECT-INSTRUCTIONS.TXT', True)]
+        for index, (name, create_prompt) in enumerate(cases):
+            with self.subTest(name=name, create_prompt=create_prompt):
+                if create_prompt:
+                    self.write('PROMPT.txt', 'Restore the supplied screenshot.\n')
+                self.meta['prompt_name'] = name
+                self.write('RELEASE.json', json.dumps(self.meta))
+                with self.assertRaises(ValueError):
+                    self.build('invalid-' + str(index))
+                self.assertFalse((self.root / ('invalid-' + str(index))).exists())
+
 
 if __name__ == '__main__':
     unittest.main()

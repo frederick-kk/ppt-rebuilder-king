@@ -101,7 +101,7 @@ def normalize_layout(payload: dict) -> dict:
         "shape": {"shape", "fill", "stroke", "stroke_width", "dash", "opacity", "rotation"},
         "line": {"points", "stroke", "stroke_width", "dash", "start_arrow", "end_arrow"},
         "table": {"rows", "column_widths", "row_heights", "size", "color", "fill", "gridcolor", "grid_width", "font"},
-        "art": {"description", "target", "presentation", "lettering"},
+        "art": {"description", "target", "presentation", "lettering", "embedded_image"},
         "formula": {"text", "size", "color", "font"},
     }
     next_id = 1
@@ -215,6 +215,10 @@ def normalize_layout(payload: dict) -> dict:
             item["description"] = _text(src.get("description"), f"{ident}.description", single=False)
             item["target"] = _box(src.get("target", item["box"]), f"{ident}.target")
             item["presentation"] = _choice(src.get("presentation", "cutout"), {"cutout", "rectangle"}, f"{ident}.presentation")
+            if "embedded_image" in src:
+                item["embedded_image"] = _boolean(src["embedded_image"], f"{ident}.embedded_image")
+                if item["embedded_image"]:
+                    item["presentation"] = "rectangle"
             if src.get("lettering") is not None:
                 item["lettering"] = _text(src["lettering"], f"{ident}.lettering", single=False)
         else:
