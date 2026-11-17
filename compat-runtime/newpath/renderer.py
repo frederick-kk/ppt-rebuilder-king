@@ -33,6 +33,14 @@ _ASCII_DIGIT_ADVANCE_EM = .67
 _ASCII_SPACE_ADVANCE_EM = .33
 
 
+class TextContainmentError(ValueError):
+    """An unchanged text-fit limit with details for source-based correction."""
+
+    def __init__(self, message, details):
+        super().__init__(message)
+        self.details = details
+
+
 def _font_directories():
     """Only inspect installed font locations; never fetch or install fonts."""
     directories = []
@@ -221,10 +229,21 @@ def _fit_text(item, *, textfit_policy=None):
     supported = not item.get('vertical') and not rotated and not italic
 
     def containment_error(message):
-        return ValueError(f"{message} [text_id={item['id']}; status={status}; "
-                          f"font={item['font']}; width_px={width:.4f}; "
-                          f"declared_width_px={authored_box[2]}; "
-                          f"effective_width_px={effective_width}]")
+        measurement = {'status':status, 'font':item['font'], 'face':face,
+                       'width_px':round(width,4), 'declared_width_px':authored_box[2],
+                       'effective_width_px':effective_width,
+                       'max_font_reduction_fraction':1-_MIN_TEXT_SCALE}
+        if status == 'estimated':
+            measurement.update(estimate_is_strict_upper_bound=False,
+                               estimate_basis='script_aware_nominal_advances')
+        details = {'text_id':item['id'], 'text':item['text'], 'reason':message,
+                   'authored_box':authored_box, 'authored_size_px':item['size'],
+                   'measurement':measurement}
+        return TextContainmentError(
+            f"{message} [text_id={item['id']}; status={status}; "
+            f"font={item['font']}; width_px={width:.4f}; "
+            f"declared_width_px={authored_box[2]}; "
+            f"effective_width_px={effective_width}]", details)
 
     if supported:
         left = authored_box[0]
@@ -292,6 +311,43 @@ def _fit_text(item, *, textfit_policy=None):
     if final_width > effective_width:
         warnings.append(f"{item['id']}: width overflow remains; authored orientation/style retained")
     return fitted,record,warnings
+
+
+def _table_text_lines(item):
+    """Yield the exact native line objects used to draw editable table cells."""
+    x0, y, _, _ = item['box']
+    for row, cells in enumerate(item['rows']):
+        x = x0
+        for col, cell in enumerate(cells):
+            lines = cell.replace('\r\n','\n').replace('\r','\n').split('\n')
+            line_height = item['row_heights'][row] / len(lines)
+            for line_index, text in enumerate(lines):
+                if not text:
+                    continue
+                child = {'id':f"{item['id']}::text.{row}.{col}.{line_index}", 'text':text,
+                         'box':[x,y+line_index*line_height,item['column_widths'][col],line_height],
+                         'font':'Microsoft YaHei', 'size':item['size'], 'color':item['color']}
+                yield row, col, line_index, child
+            x += item['column_widths'][col]
+        y += item['row_heights'][row]
+
+
+def preflight_native_text(layout):
+    """Find current native text-fit errors before a page description is frozen."""
+    issues = []
+    for item in normalize_layout(layout)['items']:
+        if item['kind'] == 'text':
+            lines = [item]
+        elif item['kind'] == 'table':
+            lines = (child for _, _, _, child in _table_text_lines(item))
+        else:
+            continue
+        for line in lines:
+            try:
+                _fit_text(line,textfit_policy=TEXT_FIT_POLICY)
+            except TextContainmentError as error:
+                issues.append({**error.details, 'message':str(error)})
+    return issues
 
 
 def _asset_target(value, ident):
@@ -412,24 +468,11 @@ def build_presentation(layout: dict, background: Path, assets: list[dict], outpu
             if kind == "table":
                 item["_cell_lines"] = []
                 record["cell_lines"] = []
-                x0, y, _, _ = item["box"]
-                for row, cells in enumerate(item["rows"]):
-                    x = x0
-                    for col, cell in enumerate(cells):
-                        lines = cell.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-                        line_height = item["row_heights"][row] / len(lines)
-                        for line_index, text in enumerate(lines):
-                            if not text:
-                                continue
-                            child = {"id": f"{ident}::text.{row}.{col}.{line_index}", "text": text,
-                                     "box": [x, y + line_index * line_height, item["column_widths"][col], line_height],
-                                     "font": "Microsoft YaHei", "size": item["size"], "color": item["color"]}
-                            fitted, typography, notes = _fit_text(child,textfit_policy=textfit_policy)
-                            item["_cell_lines"].append(fitted)
-                            record["cell_lines"].append({"row": row, "column": col, "line": line_index, **typography})
-                            warnings.extend(notes)
-                        x += item["column_widths"][col]
-                    y += item["row_heights"][row]
+                for row, col, line_index, child in _table_text_lines(item):
+                    fitted, typography, notes = _fit_text(child,textfit_policy=textfit_policy)
+                    item["_cell_lines"].append(fitted)
+                    record["cell_lines"].append({"row": row, "column": col, "line": line_index, **typography})
+                    warnings.extend(notes)
         item["_layer"] = item.get("z", default_z[kind])
         record["z"] = item["_layer"]
         if "box" in item:

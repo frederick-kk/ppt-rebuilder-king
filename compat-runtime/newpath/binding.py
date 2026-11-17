@@ -21,6 +21,11 @@ class RegistrationRequired(ValueError):
     """Existing output needs completed host observations, not another call."""
 
 
+class ReviewOutputHashRequired(RegistrationRequired):
+    """A positive review used this output's pixel digest as its file digest."""
+    kind='review_output_sha256_is_pixel_digest'
+
+
 class RoleMismatch(ValueError):
     """A viewed output explicitly failed its assigned role or subjects."""
 
@@ -46,11 +51,14 @@ def frozen_policy(work,state,requested=None):
 
 
 def review_template(task):
-    review={'role':task['role'],'output_sha256':task.get('registration',{}).get('sha256',''),'looked_at_return':False,'matches_task':False,'observed':''}
-    if task['role']=='background':review['foreground_text_absent']=False
-    elif task['role']=='foreground':review['page_elements_match']=False
-    elif task['role']=='wordart':review.update(lettering_matches=False,only_assigned_title=False)
-    elif task['role']=='board':review.update(matched_members=[],ordinary_text_removed=False)
+    review={'role':task['role'],'output_sha256':task.get('registration',{}).get('sha256',''),'looked_at_return':None,'matches_task':None,'observed':''}
+    if task['role']=='background':review['foreground_text_absent']=None
+    elif task['role']=='foreground':review['page_elements_match']=None
+    elif task['role']=='wordart':review.update(lettering_matches=None,only_assigned_title=None)
+    elif task['role']=='board':
+        members=(task.get('board') or {}).get('members')
+        review.update(matched_members=[member['id'] for member in members] if members is not None else None,
+                      ordinary_text_removed=None)
     return review
 
 
@@ -91,6 +99,8 @@ def review_evidence(review):
     if not isinstance(review,dict):return None
     fields={'role','output_sha256','looked_at_return','matches_task','observed','foreground_text_absent',
             'page_elements_match','lettering_matches','only_assigned_title','ordinary_text_removed','matched_members','notes'}
+    if review.get('observed_cell_members') is not None:
+        fields.add('observed_cell_members')
     result={}
     for key in fields & review.keys():
         value=review[key]
@@ -101,17 +111,60 @@ def review_evidence(review):
     return result
 
 
+def _known_output_id(value):
+    if isinstance(value,str) and value.strip().casefold() in {'','unknown','null','none','n/a'}:
+        return None
+    return value
+
+
+def _merge_role_reviews(first,second):
+    """Combine compatible observations without inventing or reversing checks."""
+    if not isinstance(first,dict) or not isinstance(second,dict):
+        return copy.deepcopy(first),False
+    merged=copy.deepcopy(first)
+    for field,value in second.items():
+        current=merged.get(field)
+        empty_string=field in {'role','output_sha256','observed'}
+        if current is None or (empty_string and current==''):
+            merged[field]=copy.deepcopy(value)
+            continue
+        if value is None or (empty_string and value==''):
+            continue
+        if field=='observed' and isinstance(current,str) and isinstance(value,str):
+            continue
+        if field=='notes' and isinstance(current,list) and isinstance(value,list):
+            for note in value:
+                if note not in current:current.append(copy.deepcopy(note))
+            continue
+        if field=='matched_members':
+            if (isinstance(current,list) and isinstance(value,list)
+                    and all(isinstance(member,str) for member in current+value)
+                    and len(current)==len(value) and set(current)==set(value)):
+                continue
+            return merged,False
+        if type(current) is not type(value) or current!=value:
+            return merged,False
+    return merged,True
+
+
 def normalize_known_returns(data):
     """Never ignore a declared output list because a template count was stale."""
     data=copy.deepcopy(data)
     data.pop('_returned_outputs_inconsistent',None)
+    data.pop('tool_output_id_declarations',None)
+    data.pop('role_review_declarations',None)
     if 'returned_outputs' not in data:return data
     outputs=data['returned_outputs']
-    valid=isinstance(outputs,list) and len(outputs)>=2
+    empty_failure=(outputs==[] and data.get('outcome')=='failed'
+                   and data.get('invocation_count')==1 and data.get('output_count')==0
+                   and not data.get('file') and not data.get('returned_files'))
+    valid=isinstance(outputs,list) and (len(outputs)>=1 or empty_failure)
     entries=outputs if isinstance(outputs,list) else []
     paths=[entry['file'] for entry in entries if isinstance(entry,dict)
            and isinstance(entry.get('file'),str) and entry['file']]
-    valid=valid and len(paths)==len(entries) and data.get('output_count')==len(entries)
+    reported_count=data.get('output_count')
+    count_matches=reported_count==len(entries) or (len(entries)==1 and reported_count is None)
+    valid=valid and len(paths)==len(entries) and count_matches
     given=data.get('returned_files')
     if given is None:data['returned_files']=list(paths)
     elif isinstance(given,list) and all(isinstance(p,str) for p in given):
@@ -122,8 +175,66 @@ def normalize_known_returns(data):
     if data.get('file') and paths:
         valid=valid and str(Path(data['file']).resolve())==str(Path(paths[0]).resolve())
     elif paths:data['file']=paths[0]
+    if len(entries)==1 and isinstance(entries[0],dict):
+        declarations={}
+        if 'tool_output_id' in data:declarations['top_level']=copy.deepcopy(data['tool_output_id'])
+        if 'tool_output_id' in entries[0]:declarations['returned_output']=copy.deepcopy(entries[0]['tool_output_id'])
+        if declarations:data['tool_output_id_declarations']=declarations
+        reviews={}
+        if 'role_review' in data:reviews['top_level']=copy.deepcopy(data['role_review'])
+        if 'role_review' in entries[0]:reviews['returned_output']=copy.deepcopy(entries[0]['role_review'])
+        if reviews:data['role_review_declarations']=reviews
+        for field in ('role_review','tool','tool_output_id'):
+            nested=entries[0].get(field)
+            current=data.get(field)
+            if current is None:
+                if nested is not None:data[field]=copy.deepcopy(nested)
+            elif nested is not None:
+                if field=='tool_output_id':
+                    current_id=_known_output_id(current)
+                    nested_id=_known_output_id(nested)
+                    if current_id is None:
+                        data[field]=copy.deepcopy(nested)
+                    elif nested_id is not None:
+                        valid=valid and current_id==nested_id
+                elif field=='role_review':
+                    merged,compatible=_merge_role_reviews(current,nested)
+                    data[field]=merged
+                    valid=valid and compatible
+                else:
+                    valid=valid and current==nested
     data['_returned_outputs_inconsistent']=not valid
     return data
+
+
+def _derived_inputs(work, state):
+    """Identify saved local derivatives, including an interrupted keyed preparation."""
+    known = {}
+    for owner in state['tasks'].values():
+        result = owner.get('result') or {}
+        for field, hash_field in (('material_file', 'material_sha256'), ('normalized', 'normalized_sha256')):
+            name = result.get(field)
+            if isinstance(name, str):
+                derived = relative_file(work, name)
+                digest = sha256(derived) if derived.is_file() else result.get(hash_field)
+                known[(owner['id'], str(derived))] = (owner['id'], derived, digest, result.get('sha256'))
+        if not owner.get('keyed_material_policy'):
+            continue
+        directory = relative_file(work, 'materials')
+        prefix = owner['id'] + '-'
+        for derived in directory.glob(prefix + '*.png'):
+            attempt, separator, source_prefix = derived.stem[len(prefix):].partition('-')
+            if (separator and attempt.isdecimal() and len(source_prefix) == 16
+                    and all(character in '0123456789abcdef' for character in source_prefix)
+                    and derived.is_file()):
+                known.setdefault((owner['id'], str(derived)),
+                                 (owner['id'], derived, sha256(derived), source_prefix))
+        if owner['role'] in ('background', 'foreground'):
+            derived = relative_file(work, 'layers/' + owner['role'] + '.png')
+            if derived.is_file():
+                known.setdefault((owner['id'], str(derived)),
+                                 (owner['id'], derived, sha256(derived), None))
+    return list(known.values())
 
 
 def claim_return(work,state,task,data,path,digest,*,incomplete_registration=False):
@@ -135,9 +246,11 @@ def claim_return(work,state,task,data,path,digest,*,incomplete_registration=Fals
     tool=request['request']['tool']
     if data.get('tool') is not None and data['tool']!=tool:
         raise BindingViolation('The reported result tool differs from this task request binding.')
-    output_id=data.get('tool_output_id')
+    reported_output_id=data.get('tool_output_id')
+    output_id=_known_output_id(reported_output_id)
     if output_id is not None and (not isinstance(output_id,str) or not output_id.strip() or len(output_id)>512):
-        raise BindingViolation('tool_output_id must be a known nonempty identifier, or unknown/null.')
+        invalid=RegistrationRequired if incomplete_registration else BindingViolation
+        raise invalid('tool_output_id must be a known nonempty identifier, or unknown/null.')
     decode_error=None
     try:pixels=pixel_digest(path)
     except (OSError,ValueError) as exc:pixels=None;decode_error=exc
@@ -157,9 +270,25 @@ def claim_return(work,state,task,data,path,digest,*,incomplete_registration=Fals
             other_sha=identity.get('output_sha256',identity.get('sha256'));other_pixels=identity.get('pixel_sha256')
             if other_sha==digest or (pixels is not None and other_pixels==pixels):
                 raise BindingViolation('This output is already bound to another task (cross-task file/pixel reuse).')
-            if output_id is not None and identity.get('tool_output_id')==output_id:
+            if output_id is not None and _known_output_id(identity.get('tool_output_id'))==output_id:
                 if identity.get('binding_tool',identity.get('tool'))==tool:
                     raise BindingViolation('This tool output identifier is already bound to another task.')
+    derivatives = _derived_inputs(work, state)
+    own_raw_hashes = {entry.get('output_sha256') for entry in task.get('return_bindings', [])}
+    if task.get('result'):
+        own_raw_hashes.add(task['result'].get('sha256'))
+    # A native pass-through can be byte-identical to its real input. Keep that
+    # actual input usable outside the program's derivative paths.
+    own_raw = digest in own_raw_hashes or any(
+        owner_id == task['id'] and source_prefix and digest.startswith(source_prefix) and digest == derived_sha
+        for owner_id, _, derived_sha, source_prefix in derivatives)
+    for owner_id, derived, derived_sha, _ in derivatives:
+        if Path(path).resolve() == derived.resolve():
+            raise BindingViolation('A program-derived material or normalized layer cannot be a generated raw return.')
+        if owner_id == task['id'] and own_raw:
+            continue
+        if digest == derived_sha or (pixels is not None and derived.is_file() and pixels == pixel_digest(derived)):
+            raise BindingViolation('A known program-derived material or normalized layer cannot be reused as a generated raw return, including re-encoding.')
     if incomplete_registration and missing_request:
         if decode_error is not None:raise decode_error
         return pixels,tool,request
@@ -167,6 +296,11 @@ def claim_return(work,state,task,data,path,digest,*,incomplete_registration=Fals
     identity={'task_id':task['id'],'role':task['role'],'attempt':task['attempt'],
               'output_sha256':digest,'pixel_sha256':pixels,'binding_tool':tool,'tool_output_id':output_id,
               'request_sha256':task['execution']['request_sha256'],'provenance':PROVENANCE}
+    if reported_output_id!=output_id:identity['reported_tool_output_id']=reported_output_id
+    if data.get('tool_output_id_declarations'):
+        identity['tool_output_id_declarations']=copy.deepcopy(data['tool_output_id_declarations'])
+    if data.get('role_review_declarations'):
+        identity['role_review_declarations']=copy.deepcopy(data['role_review_declarations'])
     if identity not in claims:claims.append(identity)
     if decode_error is not None:raise decode_error
     return pixels,tool,request
@@ -176,26 +310,31 @@ def validate_return(work,state,task,data,path,digest,*,incomplete_registration=F
     pixels,tool,request=claim_return(work,state,task,data,path,digest,
                                    incomplete_registration=incomplete_registration)
     review=data.get('role_review')
+    output_id=_known_output_id(data.get('tool_output_id'))
     incomplete=RegistrationRequired if incomplete_registration else ValueError
     if not isinstance(review,dict):raise incomplete('A role_review based on the actual saved return is required.')
-    if incomplete_registration and ((review.get('role') not in (None,'',task['role']))
-            or review.get('output_sha256') not in (None,'',digest)):
+    required={'background':['foreground_text_absent'],'foreground':['page_elements_match'],
+              'wordart':['lettering_matches','only_assigned_title'],'board':['ordinary_text_removed']}[task['role']]
+    if incomplete_registration and review.get('role') not in (None,'',task['role']):
+        raise BindingViolation('The role review contradicts this exact role or actual output SHA binding.')
+    if incomplete_registration and review.get('output_sha256') not in (None,'',digest):
+        if (pixels is not None and review.get('output_sha256')==pixels and review.get('role')==task['role']
+                and all(review.get(field) is True for field in ['looked_at_return','matches_task',*required])):
+            raise ReviewOutputHashRequired('The positive role review used this file\'s pixel digest. Complete output_sha256 with the actual file SHA and register the same saved bytes.')
         raise BindingViolation('The role review contradicts this exact role or actual output SHA binding.')
     if not incomplete_registration and (review.get('role')!=task['role'] or review.get('output_sha256')!=digest):
         raise ValueError('The role review is not bound to this role and actual output SHA.')
     if any(entry['attempt']==task['attempt'] and (
             entry['output_sha256']==digest
             or (pixels is not None and entry.get('pixel_sha256')==pixels)
-            or (data.get('tool_output_id') is not None
-                and entry.get('tool_output_id')==data['tool_output_id']
+            or (output_id is not None
+                and _known_output_id(entry.get('tool_output_id'))==output_id
                 and entry.get('binding_tool')==tool))
            for entry in task.get('role_review_rejections',[])):
         raise RoleMismatch('This actual output was explicitly viewed and rejected for this task subject; a later true declaration cannot erase that failure.')
-    required={'background':['foreground_text_absent'],'foreground':['page_elements_match'],
-              'wordart':['lettering_matches','only_assigned_title'],'board':['ordinary_text_removed']}[task['role']]
     if review.get('looked_at_return') is True and (review.get('matches_task') is False or any(review.get(key) is False for key in required)):
         rejection={'task_id':task['id'],'role':task['role'],'attempt':task['attempt'],'output_sha256':digest,
-                   'pixel_sha256':pixels,'binding_tool':tool,'tool_output_id':data.get('tool_output_id'),
+                   'pixel_sha256':pixels,'binding_tool':tool,'tool_output_id':output_id,
                    'matches_task':review.get('matches_task'),'looked_at_return':True,'provenance':PROVENANCE,
                    'observed':review.get('observed')[:4000] if isinstance(review.get('observed'),str) else None,
                    'explicit_false_checks':[key for key in ['matches_task',*required] if review.get(key) is False]}
@@ -220,15 +359,30 @@ def validate_return(work,state,task,data,path,digest,*,incomplete_registration=F
             if incomplete_registration and isinstance(matched,list) and matched:
                 raise RoleMismatch('The viewed board does not match every assigned member.')
             raise incomplete('The role review must match every assigned board member and no other member.')
+        observed_cells=review.get('observed_cell_members')
+        if observed_cells is not None:
+            if (not isinstance(observed_cells,list) or len(observed_cells)!=len(members)
+                    or any(not isinstance(member,str) for member in observed_cells)
+                    or len(set(observed_cells))!=len(observed_cells) or set(observed_cells)!=set(members)):
+                raise RegistrationRequired('observed_cell_members must list each assigned board member exactly once in observed row-major cell order.')
     notes=review.get('notes',[])
     if not isinstance(notes,list) or len(notes)>20 or any(not isinstance(n,str) or not n.strip() or len(n)>2000 for n in notes):
         raise incomplete('Role review notes must be a short list of actual observed limitations.')
     fields=['role','output_sha256','looked_at_return','matches_task','observed',*required]
     if task['role']=='board':fields.append('matched_members')
+    if task['role']=='board' and review.get('observed_cell_members') is not None:
+        fields.append('observed_cell_members')
     normalized={key:copy.deepcopy(review[key]) for key in fields};normalized['notes']=list(notes)
-    return {'pixel_sha256':pixels,'binding_tool':tool,'role_review':normalized,
+    result={'pixel_sha256':pixels,'binding_tool':tool,'role_review':normalized,
+            'tool_output_id':output_id,'identity_scope':'local_file' if output_id is None else 'caller_reported',
             'role_review_provenance':PROVENANCE,'role_review_scope':REVIEW_SCOPE,
             'request_sha256':task['execution']['request_sha256']}
+    if data.get('tool_output_id')!=output_id:result['reported_tool_output_id']=data['tool_output_id']
+    if data.get('tool_output_id_declarations'):
+        result['tool_output_id_declarations']=copy.deepcopy(data['tool_output_id_declarations'])
+    if data.get('role_review_declarations'):
+        result['role_review_declarations']=copy.deepcopy(data['role_review_declarations'])
+    return result
 
 
 def summary(state):

@@ -1,11 +1,11 @@
 {
   "schema": "ppt-rebuilder.release/1",
-  "version": "2026.11.08-flow.r1",
-  "release_date": "2026-11-08",
-  "package_id": "PPT Rebuilder King-20261108-flow-r1",
-  "archive_name": "PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip",
-  "source_archive_name": "PPT-Rebuilder-King-20261108-flow-r1-source.zip",
-  "source_date_epoch": 1794096000,
+  "version": "2026.11.17-r28",
+  "release_date": "2026-11-17",
+  "package_id": "PPT Rebuilder King-20261117-controller-r28",
+  "archive_name": "PPT-Rebuilder-King-ChatGPT-20261117-controller-r28.zip",
+  "source_archive_name": "PPT-Rebuilder-King-20261117-r28-source.zip",
+  "source_date_epoch": 1794873600,
   "status": "current",
   "working_pixels": [
     1920,
@@ -20,34 +20,35 @@
   "source_license": "MIT",
   "copyright": "Copyright (c) 2026 FrederikKK / frederick-kk",
   "approved_artifact": {
-    "release_tag": "v2026.11.05-package.1",
-    "download_name": "PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip",
-    "archive_root": "PPT Rebuilder King-20261108-flow-r1",
-    "sha256": "9f98c26ecb055bb5eb1f1b8bfa9409be7e79bae108102a7bc50a33c91dbb6047",
-    "bytes": 3120060,
-    "members": 784,
-    "policy": "The runtime attachment is the reviewed complete archive, copied without modification. Verify the external SHA256SUMS attachment.",
-    "tested_package_sha256": "9f98c26ecb055bb5eb1f1b8bfa9409be7e79bae108102a7bc50a33c91dbb6047"
+    "release_tag": "v2026.11.17-r28",
+    "download_name": "PPT-Rebuilder-King-ChatGPT-20261117-controller-r28.zip",
+    "archive_root": "PPT Rebuilder King-20261117-controller-r28",
+    "sha256": "12e512c8aeeff563f10c7915d54db77326b464c336d326b454dd6455e0f67399",
+    "bytes": 2181659,
+    "members": 455,
+    "policy": "The runtime archive is copied byte-for-byte from the verified R28 artifact.",
+    "tested_package_sha256": "12e512c8aeeff563f10c7915d54db77326b464c336d326b454dd6455e0f67399"
   },
-  "archive_root": "PPT Rebuilder King-20261108-flow-r1",
+  "archive_root": "PPT Rebuilder King-20261117-controller-r28",
   "source_archive_root": "PPT Rebuilder King-source",
-  "project_instructions_name": "PPT-Rebuilder-King-20261108-flow-r1-PROJECT-INSTRUCTIONS.txt",
-  "sha256sums_name": "PPT-Rebuilder-King-20261108-flow-r1-SHA256SUMS.txt",
+  "project_instructions_name": "PPT-Rebuilder-King-20261117-r28-PROJECT-INSTRUCTIONS.txt",
+  "sha256sums_name": "PPT-Rebuilder-King-20261117-r28-SHA256SUMS.txt",
   "runtime": {
-    "package_id": "PPT Rebuilder King-20261108-flow-r1",
+    "package_id": "PPT Rebuilder King-20261117-controller-r28",
     "directory": "compat-runtime",
-    "files": 425,
-    "manifest_sha256": "eac29a95575b276a90499a1b9918eba39f274c7acfe81071c3ef9cdf6e63a16f",
-    "source_snapshot_sha256": "7423a29d88ea651f05c25f892bfc858d42b72c64da4850dfec3681b35ea56f16",
+    "files": 426,
+    "payload_files": 425,
+    "manifest_sha256": "6e3d8b2c4292b57056f1fe44e4280a4457b8a826b0a4b9aacd81795277659713",
+    "source_snapshot_sha256": "4956f18fe3a334922cf807e294c05f78214f1de0a806b7190e2a04d10fecc9cc",
     "byte_identical_to_approved_runtime": true
   },
   "distribution": {
-    "runtime_includes": "Reviewed complete archive with runtime files, dependencies, workflow, project instructions and supporting engineering material.",
-    "runtime_excludes": "Live user jobs, personal handoff notes and private test captures.",
-    "source_includes": "Source, developer documentation, build tools, tests, project instructions, restoration prompt and public synthetic examples.",
+    "runtime_includes": "Runtime, pinned dependencies, workflow, companion instructions and prompts, inventories and license notices.",
+    "runtime_excludes": "Engineering tests, private jobs, diagnostic captures and personal notes.",
+    "source_includes": "Runtime source, developer documentation, packaging tools, regression tests and public synthetic examples.",
     "runtime_behavior_changed": true,
     "generation_prompt_changed": true
   },
   "distribution_mode": "approved-complete-archive",
-  "prompt_name": "PPT-Rebuilder-King-20261108-flow-r1-PROMPT.txt"
+  "prompt_name": "PPT-Rebuilder-King-20261117-r28-PROMPT.txt"
 }

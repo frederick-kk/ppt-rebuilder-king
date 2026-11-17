@@ -1,40 +1,44 @@
 # PPT Rebuilder King
 
-将单页截图重建为对象可编辑的 PowerPoint：普通正文使用原生文本，复杂艺术字和插画使用独立图片。
+将单页截图重建为对象可编辑的PowerPoint。普通正文和基础图形使用原生对象，复杂艺术字、图标和内容图片使用独立图片。
 
-**当前版本为 2026.11.08-flow.r1。** 按当前页面的分层、素材任务与原生对象组装流程生成 PPTX。
+当前发行版本为 **R28（2026.11.17-r28）**。
 
-## 下载运行文件和配套文字
+## 下载与使用
 
-- **[① 下载运行 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip)**
-- **[② 查看 / 下载配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261108-flow-r1-PROJECT-INSTRUCTIONS.txt)**
-- **[③ 下载还原提示词](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261108-flow-r1-PROMPT.txt)**
+- [下载ChatGPT运行ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.17-r28/PPT-Rebuilder-King-ChatGPT-20261117-controller-r28.zip)
+- [下载配套项目指令](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.17-r28/PPT-Rebuilder-King-20261117-r28-PROJECT-INSTRUCTIONS.txt)
+- [下载还原提示词](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.17-r28/PPT-Rebuilder-King-20261117-r28-PROMPT.txt)
 
-**运行 ZIP 下载后保持压缩状态，直接整包上传到 ChatGPT 网页版项目的「来源」。不用解压或改名。** 项目指令是需要复制到项目设置中的文字，也可 [在线查看](docs/CHATGPT_PROJECT_INSTRUCTIONS.txt)，打开 Raw 后复制全文。
+1. 在ChatGPT网页版新建项目，记忆选择仅限本项目。
+2. 将运行ZIP整包上传到项目“来源”。
+3. 将配套项目指令全文粘贴到项目设置并保存，也可[在线查看](docs/CHATGPT_PROJECT_INSTRUCTIONS.txt)。
+4. 在项目内新开对话，选择具备文件处理、代码执行与参考图生图能力的模型，上传一张单页高清图，并发送下面的提示词。
 
-## 在 ChatGPT 网页版使用
+```text
+请读取本项目来源中的 PPT-Rebuilder-King-ChatGPT-20261117-controller-r28.zip，按项目指令和包内工作流，将这张截图还原成可编辑 PPTX。
+```
 
-1. 下载运行 ZIP、配套项目指令 TXT 和还原提示词 TXT。
-2. 在 ChatGPT 网页版新建项目，记忆设置选择「仅限本项目」。
-3. 将运行 ZIP 整包上传到项目「来源」，把配套指令全文粘贴到「项目设置」→「项目指令」并保存。
-4. 在项目内新开对话，选择具备文件处理、代码执行和生图能力的模型，附上一张单页高清图，同时发送：
+5. 下载返回的PPTX，用PowerPoint或WPS检查页面和编辑效果。
 
-   > 请读取本项目来源中的 PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip，按项目指令和包内工作流，将这张截图还原成可编辑 PPTX。
+运行ZIP保持压缩格式上传。绿色Code按钮中的Download ZIP提供仓库源码。完整步骤见[使用教程](docs/USAGE.zh-CN.md)。
 
-5. 下载返回的 PPTX，用 WPS 或 PowerPoint 打开并检查。
+## 制作顺序
 
-这是 **ChatGPT 网页版项目**的使用流程，无需在本地 Codex 中安装。完整步骤见 [使用教程](docs/USAGE.zh-CN.md)，实际模型和工具选项以账号为准。
+背景 → 整页前景参考 → 一次页面描述 → 组件板 → 裁切与原生组装 → PPTX。
 
-运行 ZIP 包含运行程序、依赖、工作流、项目指令、校验清单及配套工程资料。正常制作使用本轮上传原图，按包内工作流执行。绿色 **Code → Download ZIP** 下载仓库源码；开发者可下载 [源码 ZIP](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261108-flow-r1-source.zip) 并阅读 [中文开发说明](README.zh-CN.md)。全部附件见 [本版下载页](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.11.05-package.1)，文件校验值见 [SHA256SUMS](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.05-package.1/PPT-Rebuilder-King-20261108-flow-r1-SHA256SUMS.txt)。
+整页前景按任务指定安全底色生成，程序去底得到透明参考。最终组件板直接生成真实透明PNG。固定装饰容器与连续场景保留在背景，正文和基础结构原生制作。
 
-结果受输入、宿主图像工具、字体与运行环境影响。真实页面的还原质量、交付速度与 Office 编辑效果需按实际输出检查；已有证据范围见 [验收说明](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/docs/RELEASE_VALIDATION.zh-CN.md)和 [已知问题](KNOWN_ISSUES.md)。
+新作业每个任务最多自动修复一次，全作业最多两次。已有合格回图继续使用，补登记与等待不消耗修复次数。
 
-## 参与与报告
+## 检查范围
 
-[贡献指南](CONTRIBUTING.md) · [行为准则](CODE_OF_CONDUCT.md) · [使用支持](SUPPORT.md) · [安全报告](SECURITY.md)
+还原质量和耗时受图片、模型、字体与运行环境影响。当前职业规划样本已交付并经过PowerPoint只读检查，网页计时11分14秒，仍有卡片背景和标题描边差异。验证范围见[验收说明](https://github.com/frederick-kk/ppt-rebuilder-king/blob/main/docs/RELEASE_VALIDATION.zh-CN.md)和[已知问题](KNOWN_ISSUES.md)。
 
-提交问题前请删除个人信息、密钥、绝对路径及未经授权的图片。安全漏洞请先阅读安全报告流程，勿在普通 Issue 中披露细节。
+[发行附件](https://github.com/frederick-kk/ppt-rebuilder-king/releases/tag/v2026.11.17-r28) · [文件校验值](https://github.com/frederick-kk/ppt-rebuilder-king/releases/download/v2026.11.17-r28/PPT-Rebuilder-King-20261117-r28-SHA256SUMS.txt) · [源码说明](README.zh-CN.md)
 
-## 许可
+## 许可与反馈
 
-第一方代码和文档采用 [MIT](LICENSE)。第三方依赖和外部素材的许可范围见 [NOTICE](NOTICE.md) 与 [第三方许可](THIRD_PARTY_LICENSES.md)。
+第一方代码和文档采用[MIT](LICENSE)。第三方依赖保留各自的版权与许可，见[NOTICE](NOTICE.md)和[第三方许可](THIRD_PARTY_LICENSES.md)。
+
+[贡献指南](CONTRIBUTING.md) · [使用支持](SUPPORT.md) · [安全报告](SECURITY.md)

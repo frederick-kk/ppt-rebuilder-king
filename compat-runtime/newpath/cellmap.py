@@ -7,11 +7,13 @@ from __future__ import annotations
 import math
 import numpy as np
 from PIL import Image
-from .matte import _regions
+from .matte import _regions, _expand
+from .native import MODE
 
 _NARROW_UNCONFIRMED_COMPONENT_PX = 8
 _NARROW_UNCONFIRMED_TOTAL_PX = 64
 _WEAK_UNCONFIRMED_MAX_ALPHA = 3
+FIXED_GRID_POLICY = 'native-fixed-grid-low-alpha-background/1'
 
 
 def _scaled_slot(slot, reference_size, actual_size):
@@ -91,9 +93,10 @@ def _separators(projection, count, cell_size, margin, gap, scale,
     return cuts,failed,ambiguous,changed
 
 
-def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = True,
+def _resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = True,
                   reference_alpha: np.ndarray | None = None,
-                  native_geometry: bool = False) -> dict:
+                  native_geometry: bool = False, reference_fragment_radius=0,
+                   context=None, actual_anchor_pixel_budget=None) -> dict:
     """Return cells, status, warnings and unsafe member IDs before cutting.
 
     ``alpha`` is H x W; alpha > 0 includes disconnected and translucent marks.
@@ -150,6 +153,18 @@ def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = 
             a,b,c,d=_scaled_slot(member['slot'],reference_size,(width,height))
             for label in np.unique(labels[b:d,a:c][reference[b:d,a:c]&occupied[b:d,a:c]]):
                 if label:owners.setdefault(int(label),set()).add(member['id'])
+        if context is not None:
+            context.update(labels=labels,regions=regions,owners=owners,reference=reference)
+        if reference_fragment_radius:
+            attached=_attach_reference_fragments(board,pixels,labels,regions,reference,
+                                                  owners,reference_fragment_radius)
+            if actual_anchor_pixel_budget is not None:
+                actual_attached,actual_report=_attach_actual_anchor_fragments(
+                    board,pixels,labels,regions,owners,actual_anchor_pixel_budget)
+                attached.extend(actual_attached)
+                if actual_report:result['actual_anchor_support']=actual_report
+            result['reference_supported_fragments']=attached
+            result['reference_fragments_unresolved']=sum(not owners.get(region['id']) for region in regions)
         for identities in owners.values():
             if len(identities)>1:crossed.update(identities)
         # A matching projection in another row/column is not identity evidence.
@@ -400,3 +415,467 @@ def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = 
     result["unsafe_members"] = sorted(unsafe)
     result["status"] = "ambiguous" if unsafe else "adjusted" if changed_x or changed_y else "aligned"
     return result
+
+
+def _attach_reference_fragments(board,pixels,labels,regions,reference,owners,radius):
+    """A complete faint fragment must fit exactly one finite reference support."""
+    height,width=pixels.shape
+    supports={}
+    for member in board['members']:
+        a,b,c,d=_scaled_slot(member['slot'],board['size'],(width,height))
+        seed=np.zeros((height,width),dtype=bool)
+        seed[b:d,a:c]=reference[b:d,a:c]
+        supports[member['id']]=_expand(seed,radius)
+    attached=[]
+    for region in regions:
+        label=region['id']
+        if owners.get(label):continue
+        a,b,c,d=region['box']
+        mask=labels[b:d,a:c]==label
+        maximum=int(pixels[b:d,a:c][mask].max())
+        if maximum>8:continue
+        matches=[identity for identity,support in supports.items() if np.all(support[b:d,a:c][mask])]
+        if len(matches)!=1:continue
+        owners[label]={matches[0]}
+        attached.append({'owner':matches[0],'box':list(region['box']),
+                         'pixels':int(mask.sum()),'max_alpha':maximum})
+    return attached
+
+
+def _attach_actual_anchor_fragments(board,pixels,labels,regions,owners,total_budget):
+    """Attach complete faint edges near one already reference-confirmed strong group."""
+    height,width=pixels.shape
+    grid=board['grid']
+    cell_width=grid['cell_size'][0]*width/board['size'][0]
+    cell_height=grid['cell_size'][1]*height/board['size'][1]
+    radius=max(2,math.ceil(min(cell_width,cell_height)/64))
+    component_budget=max(8,math.ceil(cell_width*cell_height/1024))
+    supports={}
+    for member in board['members']:
+        identity=member['id']
+        known=[label for label,identities in owners.items() if identities=={identity}]
+        seed=np.isin(labels,known)&(pixels>16)
+        if not np.any(seed):return [],None
+        supports[identity]=_expand(seed,radius)
+    # Build every support before assigning any fragment. Attached faint pixels
+    # cannot become seeds or extend another fragment's permitted distance.
+    proposed=[]
+    for region in regions:
+        label=region['id']
+        if owners.get(label):continue
+        a,b,c,d=region['box']
+        mask=labels[b:d,a:c]==label
+        area=int(mask.sum())
+        maximum=int(pixels[b:d,a:c][mask].max())
+        if area>component_budget or maximum>16:continue
+        matches=[identity for identity,support in supports.items()
+                 if np.all(support[b:d,a:c][mask])]
+        if len(matches)!=1:continue
+        proposed.append({'owner':matches[0],'box':list(region['box']),
+                         'pixels':area,'max_alpha':maximum,'label':label,
+                         'support':'reference-confirmed-actual-strong-pixels'})
+    attached_pixels=sum(fragment['pixels'] for fragment in proposed)
+    if not proposed or attached_pixels>total_budget:return [],None
+    for fragment in proposed:
+        owners[fragment.pop('label')]={fragment['owner']}
+    report={'policy':'bounded-actual-anchor-fragments/1',
+            'seed_alpha_threshold':16,'fragment_alpha_limit':16,'radius_px':radius,
+            'per_component_budget_px':component_budget,
+            'remaining_combined_total_budget_px':total_budget,
+            'attached_components':len(proposed),'attached_pixels':attached_pixels,
+            'fixed_non_cascading_seeds':True,'identity_quality':'not_evaluated',
+            'all_rgba_pixels_preserved':True}
+    return proposed,report
+
+
+def _whole_observed_cells(board,geometry,regions,owners,candidate,observed,check_canvas_edges):
+    """Accept existing observed cells only when every original group stays whole."""
+    if not observed:return None
+    cells=observed.get('cells',{})
+    if set(cells)!={member['id'] for member in board['members']}:return None
+    height,width=geometry.shape
+    rectangles=list(cells.values())
+    for rectangle in rectangles:
+        if len(rectangle)!=4 or any(type(value) is not int for value in rectangle):return None
+        a,b,c,d=rectangle
+        if not (0<=a<c<=width and 0<=b<d<=height):return None
+        if not np.any(geometry[b:d,a:c]>1):return None
+    if sum((c-a)*(d-b) for a,b,c,d in rectangles)!=width*height:return None
+    for index,(a,b,c,d) in enumerate(rectangles):
+        for x0,y0,x1,y1 in rectangles[index+1:]:
+            if max(a,x0)<min(c,x1) and max(b,y0)<min(d,y1):return None
+    if check_canvas_edges and (np.any(geometry[:,0]>1) or np.any(geometry[:,-1]>1)
+                               or np.any(geometry[0,:]>1) or np.any(geometry[-1,:]>1)):
+        return None
+    for fragment in candidate.get('reference_supported_fragments',[]):
+        a,b,c,d=fragment['box']
+        x0,y0,x1,y1=cells[fragment['owner']]
+        if not (x0<=a and y0<=b and c<=x1 and d<=y1):return None
+    for region in regions:
+        a,b,c,d=region['box']
+        containing=[identity for identity,(x0,y0,x1,y1) in cells.items()
+                    if x0<=a and y0<=b and c<=x1 and d<=y1]
+        if len(containing)!=1:return None
+        if owners.get(region['id']) and owners[region['id']]!={containing[0]}:return None
+    return {identity:list(rectangle) for identity,rectangle in cells.items()}
+
+
+def _recover_reference_fragments(board,pixels,context,check_canvas_edges,actual_anchor_support=False,
+                                 observed_mapping=None):
+    labels=context['labels'];regions=context['regions'];owners=context['owners']
+    reference=context['reference']
+    members=board['members']
+    if any(len(identities)>1 for identities in owners.values()):return None
+    strong=set(int(label) for label in np.unique(labels[reference&(pixels>8)]) if label)
+    anchors={next(iter(identities)) for label,identities in owners.items()
+             if len(identities)==1 and label in strong}
+    if anchors!={member['id'] for member in members}:return None
+    height,width=pixels.shape
+    grid=board['grid']
+    cell_width=grid['cell_size'][0]*width/board['size'][0]
+    cell_height=grid['cell_size'][1]*height/board['size'][1]
+    component_budget=max(8,math.ceil(cell_width*cell_height/1024))
+    total_budget=max(64,math.ceil(width*height/1024))
+    areas=np.bincount(labels.ravel())
+    ignored=[];maxima={}
+    for region in regions:
+        label=region['id']
+        if owners.get(label):continue
+        a,b,c,d=region['box']
+        maximum=int(pixels[b:d,a:c][labels[b:d,a:c]==label].max())
+        if maximum>3:continue
+        if areas[label]>component_budget:return None
+        ignored.append(label);maxima[label]=maximum
+    ignored_pixels=sum(int(areas[label]) for label in ignored)
+    if ignored_pixels>total_budget:return None
+    geometry=pixels.copy()
+    if ignored:geometry[np.isin(labels,ignored)]=0
+    radius=max(2,math.ceil(min(cell_width,cell_height)/28))
+    candidate=_resolve_cells(board,geometry,check_canvas_edges=check_canvas_edges,
+                             reference_alpha=reference,native_geometry=True,
+                              reference_fragment_radius=radius,
+                              actual_anchor_pixel_budget=(total_budget-ignored_pixels
+                                                          if actual_anchor_support else None))
+    if candidate['unsafe_members'] or candidate.get('reference_fragments_unresolved'):return None
+    if not ignored and not candidate.get('reference_supported_fragments'):return None
+    for fragment in candidate.get('reference_supported_fragments',[]):
+        a,b,c,d=fragment['box']
+        x0,y0,x1,y1=candidate['cells'][fragment['owner']]
+        if not (x0<=a and y0<=b and c<=x1 and d<=y1):return None
+    # Keep every original alpha>1 component complete, with its original owner.
+    crossing_ignored=[]
+    for region in regions:
+        a,b,c,d=region['box']
+        containing=[identity for identity,(x0,y0,x1,y1) in candidate['cells'].items()
+                    if x0<=a and y0<=b and c<=x1 and d<=y1]
+        if len(containing)!=1:
+            if containing or owners.get(region['id']) or region['id'] not in ignored:return None
+            crossing_ignored.append(region)
+            continue
+        if owners.get(region['id']) and owners[region['id']]!={containing[0]}:return None
+    observed_cut_recovery=None
+    if crossing_ignored:
+        observed_cells=_whole_observed_cells(board,geometry,regions,owners,candidate,
+                                              observed_mapping,check_canvas_edges)
+        if observed_cells is None:return None
+        previous_cells=candidate['cells']
+        candidate['cells']=observed_cells
+        candidate['status']='adjusted'
+        candidate['column_row_cuts']={column:list(cuts) for column,cuts
+                                      in observed_mapping.get('column_row_cuts',{}).items()}
+        observed_cut_recovery={'policy':'complete-original-groups-existing-observed-cuts/1',
+            'previous_cells':previous_cells,'observed_cells':observed_cells,
+            'crossing_ignored_components':len(crossing_ignored),
+            'crossing_ignored_pixels':sum(int(areas[region['id']]) for region in crossing_ignored),
+            'crossing_ignored_max_alpha':max(maxima[region['id']] for region in crossing_ignored),
+            'all_original_core_components_unsplit':True,'all_owners_preserved':True,
+            'identity_quality':'not_evaluated','all_rgba_pixels_preserved':True}
+        candidate['warnings'].append({'code':'native_complete_observed_cut_recovered',**observed_cut_recovery})
+    boxes={}
+    for identity,(a,b,c,d) in candidate['cells'].items():
+        yy,xx=np.nonzero(geometry[b:d,a:c]>1)
+        if not len(xx):return None
+        boxes[identity]=[a+int(xx.min()),b+int(yy.min()),a+int(xx.max())+1,b+int(yy.max())+1]
+    report={'policy':'reference-supported-native-fragments/1',
+            'ignored_geometry_components':len(ignored),'ignored_geometry_pixels':ignored_pixels,
+            'ignored_alpha_limit':3,'max_ignored_alpha':max(maxima.values(),default=0),
+            'max_ignored_component_pixels':max((int(areas[label]) for label in ignored),default=0),
+            'per_component_budget_px':component_budget,'total_budget_px':total_budget,
+            'budget_basis':'one_1024th_scaled_cell_area_and_one_1024th_returned_canvas_area_with_original_minima',
+            'reference_radius_px':radius,'reference_fragment_alpha_limit':8,
+            'attached_fragments':candidate.pop('reference_supported_fragments',[]),
+            'all_original_core_components_unsplit':True,'all_rgba_pixels_preserved':True,
+            'identity_quality':'not_evaluated'}
+    candidate.pop('reference_fragments_unresolved',None)
+    if 'actual_anchor_support' in candidate:
+        report['actual_anchor_support']=candidate.pop('actual_anchor_support')
+    if observed_cut_recovery:report['observed_cut_recovery']=observed_cut_recovery
+    candidate['reference_fragment_recovery']=report
+    candidate['member_geometry_boxes']=boxes
+    candidate['warnings'].append({'code':'reference_supported_native_fragments_recovered',**report})
+    return candidate
+
+
+def _restore_partial_members(board, context, strict, candidate):
+    """Apply validated recovery only to failed cells with their original bounds."""
+    unsafe = set(strict['unsafe_members'])
+    safe = [member['id'] for member in board['members'] if member['id'] not in unsafe]
+    reserved = [strict['cells'][identity] for identity in safe]
+    groups = [(region['box'], context['owners'].get(region['id'], set()))
+              for region in context['regions']]
+    recovery = candidate.get('reference_fragment_recovery', {})
+    groups.extend((fragment['box'], {fragment['owner']})
+                  for fragment in recovery.get('attached_fragments', []))
+    recovered = []
+    geometry_boxes = {}
+    for identity in strict['unsafe_members']:
+        rectangle = candidate['cells'].get(identity)
+        core = candidate.get('member_geometry_boxes', {}).get(identity)
+        if rectangle != strict['cells'][identity] or core is None:
+            continue
+        a, b, c, d = rectangle
+        if not (a < c and b < d and a <= core[0] < core[2] <= c
+                and b <= core[1] < core[3] <= d):
+            continue
+        if any(max(a, x0) < min(c, x1) and max(b, y0) < min(d, y1)
+               for x0, y0, x1, y1 in reserved):
+            continue
+        valid = True
+        for (x0, y0, x1, y1), owners in groups:
+            intersects = max(a, x0) < min(c, x1) and max(b, y0) < min(d, y1)
+            if not intersects:
+                continue
+            if not (a <= x0 and b <= y0 and x1 <= c and y1 <= d):
+                valid = False
+                break
+            if owners and owners != {identity}:
+                valid = False
+                break
+        if not valid:
+            continue
+        recovered.append(identity)
+        geometry_boxes[identity] = list(core)
+        reserved.append(rectangle)
+    if not recovered:
+        return strict
+    remaining = [identity for identity in strict['unsafe_members'] if identity not in geometry_boxes]
+    report = {
+        'policy': 'preserve-accepted-assets-partial-native-recovery/1',
+        'recovered_members': recovered,
+        'remaining_unsafe_members': remaining,
+        'preserved_safe_members': safe,
+        'original_cell_bounds_preserved': True,
+        'recovered_member_core_components_unsplit': True,
+        'all_owners_preserved': True,
+        'identity_quality': 'not_evaluated',
+        'all_rgba_pixels_preserved': True,
+    }
+    result = dict(strict)
+    result['status'] = 'ambiguous' if remaining else candidate['status']
+    result['unsafe_members'] = remaining
+    result['member_geometry_boxes'] = {**strict.get('member_geometry_boxes', {}), **geometry_boxes}
+    result['preserved_asset_statuses'] = {identity: strict['status'] for identity in safe}
+    result['reference_fragment_recovery'] = recovery
+    result['partial_member_recovery'] = report
+    result['warnings'] = [*strict['warnings'], {'code': 'partial_native_members_recovered', **report}]
+    return result
+
+
+def _fixed_grid_partitions(board, actual_size):
+    """Partition complete planned cells and retain unused space separately."""
+    width, height = actual_size
+    reference_width, reference_height = board['size']
+    grid = board['grid']
+    rows, columns = grid['rows'], grid['columns']
+    margin, gap = grid['margin'], grid['gap']
+    cell_width, cell_height = grid['cell_size']
+    right = margin + columns * cell_width + (columns - 1) * gap
+    bottom = margin + rows * cell_height + (rows - 1) * gap
+    if right > reference_width - margin or bottom > reference_height - margin:
+        return None
+    member_positions = {}
+    for member in board['members']:
+        x, y, member_width, member_height = member['slot']
+        column = round((x - margin) / (cell_width + gap))
+        row = round((y - margin) / (cell_height + gap))
+        expected = [margin + column * (cell_width + gap),
+                    margin + row * (cell_height + gap), cell_width, cell_height]
+        if (not (0 <= row < rows and 0 <= column < columns)
+                or any(abs(value - wanted) > 1e-6
+                       for value, wanted in zip(member['slot'], expected))
+                or (row, column) in member_positions):
+            return None
+        member_positions[row, column] = member['id']
+    xs = [round(margin * width / reference_width)]
+    xs.extend(round((margin + column * (cell_width + gap) - gap / 2)
+                    * width / reference_width) for column in range(1, columns))
+    xs.append(round(right * width / reference_width))
+    ys = [round(margin * height / reference_height)]
+    ys.extend(round((margin + row * (cell_height + gap) - gap / 2)
+                    * height / reference_height) for row in range(1, rows))
+    ys.append(round(bottom * height / reference_height))
+    if (not (0 < xs[0] < xs[-1] < width and 0 < ys[0] < ys[-1] < height)
+            or any(a >= b for a, b in zip(xs, xs[1:]))
+            or any(a >= b for a, b in zip(ys, ys[1:]))):
+        return None
+    partitions = []
+    cells = {}
+    for row in range(rows):
+        for column in range(columns):
+            box = [xs[column], ys[row], xs[column + 1], ys[row + 1]]
+            identity = member_positions.get((row, column))
+            if identity is not None:
+                cells[identity] = box
+            partitions.append({'kind': 'member' if identity is not None else 'unused_cell',
+                               'member_id': identity, 'box': box})
+    for name, box in [
+        ('outside_top', [0, 0, width, ys[0]]),
+        ('outside_bottom', [0, ys[-1], width, height]),
+        ('outside_left', [0, ys[0], xs[0], ys[-1]]),
+        ('outside_right', [xs[-1], ys[0], width, ys[-1]]),
+    ]:
+        partitions.append({'kind': name, 'member_id': None, 'box': box})
+    return cells, partitions, xs, ys
+
+
+def _recover_fixed_native_grid(board, pixels, reference_alpha, context, strict):
+    """Cut only faint grid dividers after whole strong cores match real reference."""
+    if (board.get('background_mode') != MODE or reference_alpha is None
+            or len(strict['unsafe_members']) != len(board['members'])):
+        return None
+    multi_owner_components = sum(len(owners) > 1 for owners in context['owners'].values())
+    if multi_owner_components:
+        return None
+    height, width = pixels.shape
+    partition = _fixed_grid_partitions(board, (width, height))
+    if partition is None:
+        return None
+    cells, parts, xs, ys = partition
+    given = np.asarray(reference_alpha)
+    reference_levels = np.where(given > 16, 255, np.where(given > 0, 1, 0)).astype(np.uint8)
+    reference = np.asarray(Image.fromarray(reference_levels).resize(
+        (width, height), Image.Resampling.NEAREST))
+    if not np.any(reference > 16):
+        return None
+    dividers = []
+    for axis, cuts in [('x', xs), ('y', ys)]:
+        for cut in cuts:
+            if axis == 'x':
+                band = pixels[:, cut - 1:cut + 1]
+                reference_band = reference[:, cut - 1:cut + 1]
+            else:
+                band = pixels[cut - 1:cut + 1, :]
+                reference_band = reference[cut - 1:cut + 1, :]
+            maximum = int(band.max())
+            nonzero = int(np.count_nonzero(band))
+            if (not nonzero or maximum > _WEAK_UNCONFIRMED_MAX_ALPHA
+                    or np.any(reference_band)):
+                return None
+            dividers.append({'axis': axis, 'cut': cut,
+                             'nonzero_alpha_pixels': nonzero,
+                             'max_alpha_adjacent_2px': maximum})
+    partition_labels = np.full(pixels.shape, -1, dtype=np.int32)
+    member_partitions = {}
+    background = []
+    covered = 0
+    for index, part in enumerate(parts):
+        x0, y0, x1, y1 = part['box']
+        if np.any(partition_labels[y0:y1, x0:x1] != -1):
+            return None
+        partition_labels[y0:y1, x0:x1] = index
+        covered += (x1 - x0) * (y1 - y0)
+        identity = part['member_id']
+        if identity is not None:
+            member_partitions[identity] = index
+        else:
+            if (np.any(pixels[y0:y1, x0:x1] > 16)
+                    or np.any(reference[y0:y1, x0:x1] > 16)):
+                return None
+            background.append({**part, 'max_alpha': int(pixels[y0:y1, x0:x1].max())})
+    if covered != width * height or np.any(partition_labels < 0):
+        return None
+    strong_context = {}
+    _resolve_cells(board, np.where(pixels > 16, pixels, 0), native_geometry=True,
+                   reference_alpha=np.where(reference > 16, reference, 0),
+                   context=strong_context)
+    if not strong_context:
+        return None
+    strong_labels = strong_context['labels']
+    boxes = {}
+    for region in strong_context['regions']:
+        owners = strong_context['owners'].get(region['id'], set())
+        if len(owners) != 1:
+            return None
+        identity = next(iter(owners))
+        if identity not in cells:
+            return None
+        x0, y0, x1, y1 = cells[identity]
+        left, top, right, bottom = region['box']
+        if not (x0 <= left < right <= x1 and y0 <= top < bottom <= y1):
+            return None
+        labels = partition_labels[top:bottom, left:right][
+            strong_labels[top:bottom, left:right] == region['id']]
+        if not np.all(labels == member_partitions[identity]):
+            return None
+        previous = boxes.get(identity, region['box'])
+        boxes[identity] = [min(previous[0], left), min(previous[1], top),
+                           max(previous[2], right), max(previous[3], bottom)]
+    if set(boxes) != set(cells):
+        return None
+    split_components = 0
+    for region in context['regions']:
+        left, top, right, bottom = region['box']
+        touched = partition_labels[top:bottom, left:right][
+            context['labels'][top:bottom, left:right] == region['id']]
+        if len(np.unique(touched)) > 1:
+            split_components += 1
+    report = {
+        'policy': FIXED_GRID_POLICY,
+        'identity_quality': 'not_evaluated',
+        'strong_alpha_threshold_for_geometry_only': 16,
+        'divider_alpha_limit': _WEAK_UNCONFIRMED_MAX_ALPHA,
+        'divider_adjacent_pixels': 2,
+        'dividers': dividers,
+        'all_strong_components_unique_and_unsplit': True,
+        'strong_components': len(strong_context['regions']),
+        'original_multi_owner_components': multi_owner_components,
+        'background_field_policy': 'nonzero-alpha-at-every-planned-divider/1',
+        'split_alpha_above1_components': split_components,
+        'original_alpha_above1_components_unsplit': split_components == 0,
+        'complete_cell_rgba_preserved': True,
+        'background_partitions': background,
+        'coverage': {'canvas_pixels': width * height, 'partition_pixels': covered,
+                     'each_pixel_exactly_once': True},
+    }
+    return {
+        **strict, 'status': 'adjusted', 'cells': cells, 'unsafe_members': [],
+        'geometry_policy': FIXED_GRID_POLICY,
+        'alpha_threshold_for_geometry_only': 16,
+        'member_geometry_boxes': boxes, 'fixed_grid_recovery': report,
+        'warnings': [*strict['warnings'], {'code': 'native_fixed_grid_recovered', **report}],
+    }
+
+
+def resolve_cells(board: dict, alpha: np.ndarray, *, check_canvas_edges: bool = True,
+                  reference_alpha: np.ndarray | None = None,
+                  native_geometry: bool = False) -> dict:
+    """Keep accepted cells while recovering only fully supported native members."""
+    context={}
+    strict=_resolve_cells(board,alpha,check_canvas_edges=check_canvas_edges,
+                           reference_alpha=reference_alpha,native_geometry=native_geometry,
+                           context=context)
+    if (not native_geometry or strict.get('geometry_policy')!='native-core-local-rows/1'
+            or not strict['unsafe_members'] or not context):
+        return strict
+    recovered=_recover_reference_fragments(board,np.asarray(alpha),context,check_canvas_edges,
+                                           observed_mapping=strict)
+    if recovered is None:
+        recovered=_recover_reference_fragments(board,np.asarray(alpha),context,check_canvas_edges,
+                                               actual_anchor_support=True,observed_mapping=strict)
+    if recovered is None:
+        recovered = _recover_fixed_native_grid(board, np.asarray(alpha), reference_alpha,
+                                               context, strict)
+        return strict if recovered is None else recovered
+    if len(strict['unsafe_members']) == len(board['members']):
+        return recovered
+    return _restore_partial_members(board, context, strict, recovered)

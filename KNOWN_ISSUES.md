@@ -1,13 +1,11 @@
-# Known limits
+# 已知问题
 
-- The current `2026.11.08-flow.r1` runtime archive contains 784 members, including 425 runtime files and 394 dependency files. Its root and runtime identity are `PPT Rebuilder King-20261108-flow-r1`. Use the current SHA256SUMS and both embedded inventories to identify the download.
-- The complete runtime archive includes workflow, dependencies, project instructions and supporting engineering material. Private user jobs, personal logs and optional private diagnostic fixtures remain outside the public distribution.
-- New jobs use `bounded-recovery/1`. A controller-issued repair may add at most one image call across the whole job. Missing registration fields require truthful completion of the existing receipt. Exhausted repair budgets, binding conflicts, unknown or excess invocation counts and a user stop preserve the job for inspection.
-- Independent photographs, screenshots, scans and collage images retain their complete rectangular foreground role, including internal writing and people. Layout uses `art.embedded_image:true`. Host observation and truthful role reviews remain necessary to establish whether a returned image follows that role.
-- Provider execution, image fidelity, billing and end-to-end time depend on the host and require their own evidence. The recorded local regression and CLI replay cover local behavior and file handling.
-- Native body text and supported basic geometry are editable objects. Complex artwork is a movable PNG whose internal lettering remains image content. Formula and table support has a defined structural scope.
-- Coordinate labels depend on installed font metrics. Alternate-font edge-label omissions remain a known limitation. The working canvas is 1920×1080 with 25/50/5 guides.
-- Microsoft YaHei is supplied by the host. Missing matching fonts use explicitly estimated bounded text fitting, with a maximum font-size reduction of 25 percent. Genuine text overflow can stop delivery.
-- Transparent materials require genuine PNG alpha and clear ownership. Ambiguous or crossing content, false transparency and damaged outputs can remain rejected. Successful local extraction alone establishes neither model fidelity nor a complete visual review.
-- Explicit diagnostic export reads the selected job. Its parent output directory must exist and its filesystem must support atomic hard-link publication. A warning about no recorded image invocation requires checking the selected job path.
-- Optional private diagnostic regressions report their skip reasons. Office display, manual editing, full-page fidelity and cross-platform behavior require matching sample and environment evidence. Historical Office checks are identified separately in the release validation record.
+- 当前运行身份为`PPT Rebuilder King-20261117-controller-r28`。运行ZIP共455项，425个运行负载文件另加运行MANIFEST，依赖文件为394项。
+- 职业规划样本网页计时674秒，超过600秒目标。样本左侧三张独立蓝卡合成一块大底，标题新增白描边，字体粗细与位置存在差异。
+- 本轮实际生产请求模型字段与完整原始作业状态未取得。原始状态缺失时无法恢复完整调用历史，现有PPTX与回图支持各自的文件和像素核对。
+- 整页前景采用指定安全底色并由程序去底，最终组件板要求真实PNG透明通道。透明数据存在仍需核对主体、字形、轮廓和材质。
+- 新作业每个任务最多自动修复一次，全作业最多两次。真实角色失败、缺件、错字、来源冲突和修复仍失败时会暂停并保留原因。
+- 普通正文与支持的基础图形原生编辑，复杂艺术字、图标及内容图片作为独立PNG。艺术字图片内部字符按图片保留。
+- Microsoft YaHei和其他字体由宿主提供。字体缺失会使用明确估算的文字适配，最多缩减25%字号，真实溢出可能停止交付。坐标辅助图的标签也受字体度量影响。
+- 图像服务执行、计费、所有页面质量、手工编辑与跨平台效果需要各自验证。PowerPoint只读显示和对象结构检查覆盖其实际检查范围。
+- 诊断导出要求原始作业可访问，目标父目录存在，文件系统支持原子硬链接发布。可选私有测试材料缺少时明确跳过。

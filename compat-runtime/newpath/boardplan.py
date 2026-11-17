@@ -13,6 +13,7 @@ _CANVASES = ((1024, 1024), (1536, 1024))
 _MARGIN, _GAP = 24, 24
 _POLICY = "equal-cells-pixel-budget/1"
 _SPLIT_POLICY = "equal-cells-beneficial-lettering-split/1"
+SOURCE_BUDGET_POLICY = "source-pixel-budget/1"
 _MIN_SPLIT_GAIN = 1.25
 _MAX_SPLIT_CANDIDATES = 12
 
@@ -261,7 +262,7 @@ def _beneficial_split(boards):
     return chosen,audit
 
 
-def plan_boards(arts: list[dict], source_size=(1920,1080)) -> list[dict]:
+def plan_boards(arts: list[dict], source_size=(1920,1080), *, sampling_policy=None) -> list[dict]:
     """Plan stable source crops and equal cells with honest integer budgets.
 
     Three deterministic source-demand orderings are evaluated, preferring
@@ -271,8 +272,12 @@ def plan_boards(arts: list[dict], source_size=(1920,1080)) -> list[dict]:
     A dense written group may use one more board when at least two written
     subjects gain 25 percent in both sampling dimensions and no member loses
     pixels. A fourth board is optional, not a total-board cap or concurrency.
+    Explicit source-pixel-budget/1 uses the base source/target pixel demands
+    without adding a board for optional sampling gains.
     ``inset_xy`` is actual per-axis clearance; ``inset_px`` is legacy metadata.
     """
+    if sampling_policy not in (None, SOURCE_BUDGET_POLICY):
+        raise ValueError("Unsupported board sampling policy")
     try:
         if len(source_size) != 2:
             raise ValueError
@@ -284,11 +289,17 @@ def plan_boards(arts: list[dict], source_size=(1920,1080)) -> list[dict]:
     items = _requests(arts,size)
     if not items:
         return []
-    chosen,audit = _beneficial_split(_best_plan(items))
+    chosen = _best_plan(items)
+    audit = None
+    if sampling_policy is None:
+        chosen,audit = _beneficial_split(chosen)
     result = []
     for board in sorted(chosen,key=lambda value:min(item.identity for item in value[-1])):
         public = _public(board)
-        if audit and any(item.identity in audit['original_group_ids'] for item in board[-1]):
+        if sampling_policy == SOURCE_BUDGET_POLICY:
+            public['policy'] = SOURCE_BUDGET_POLICY
+            public['grid']['policy'] = SOURCE_BUDGET_POLICY
+        elif audit and any(item.identity in audit['original_group_ids'] for item in board[-1]):
             public['policy'] = _SPLIT_POLICY
             public['grid']['policy'] = _SPLIT_POLICY
             public['pixel_budget']['adaptive_split'] = audit

@@ -17,7 +17,7 @@ python -B -m unittest discover -s tools -p test_repack_runtime.py -v
 
 `test_embedded_photo_contract.py` 通过真实布局、组件板和请求构造，检查 `embedded_image` 标记在两种模式下的传递、矩形角色、图内文字归属和主标题选择，同时核对相同参考输入下的像素结果。原生素材用例继续检查 RGBA、透明边界、定位与像素几何。
 
-这些夹具属于源码测试资产，也可存在于完整运行附件的配套工程资料中。发行运行附件共 784 个成员，运行清单包含 425 个文件。开发测试由操作者显式运行。
+这些夹具属于源码测试资产，供开发者显式使用。运行ZIP按独立清单提供程序与依赖。R28运行附件共455项，运行清单声明425个负载文件，另有一份运行MANIFEST。开发测试由操作者显式运行。
 
 可单独复核以下用例。
 
@@ -52,3 +52,7 @@ python -B -m unittest discover -s engineering/tests -p test_embedded_photo_contr
 标尺标签使用已安装字体，字体宽度会影响右端 1900 标签碰撞和内部保留区。保留现有网格、字体和像素断言，并如实记录支持环境。
 
 已有 Arial 14 像素契约检查与 Pillow 默认字体、较宽字体的边界问题属于各自环境的结果。正式支持新的字体环境前，需对对应样本独立复验，保留失败可见性。
+
+## R28恢复与透明素材回归
+
+`test_keyed_material_controller.py`和`test_keyed_materials.py`覆盖前景去底及原生透明组件板。`test_bounded_existing_return_recovery.py`覆盖新修复预算和现存回图，`test_derived_material_ownership.py`覆盖派生来源绑定。可选背景诊断通过`PRK_BACKGROUND_FAILURE_JOB`显式传入，公开源码不携带真实用户诊断。

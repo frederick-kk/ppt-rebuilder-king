@@ -85,6 +85,25 @@ class StandaloneWordartTests(unittest.TestCase):
                 self.assertEqual(info["background_mode"],wordart.MODE)
                 self.assertTrue(info["transparent_background"])
 
+    def test_near_opaque_254_ink_validates_and_preserves_all_rgba(self):
+        pixels = self.raw.copy()
+        pixels[pixels[..., 3] == 255, 3] = 254
+        source = self.write(pixels)
+        before = source.read_bytes()
+
+        inspection = wordart.validate_wordart_output(source)
+        self.assertTrue(inspection["transparent_background"])
+        self.assertEqual(inspection["quality"], "not_evaluated")
+
+        result = wordart.extract_wordart_asset(self.member, source, self.root / "assets")
+        asset = result["assets"][0]
+        left, top, right, bottom = asset["crop_box"]
+        with Image.open(asset["path"]) as image:
+            actual = np.asarray(image)
+        np.testing.assert_array_equal(actual, pixels[top:bottom, left:right])
+        self.assertEqual(int(actual[..., 3].max()), 254)
+        self.assertEqual(source.read_bytes(), before)
+
     def test_alpha_one_tip_and_white_purple_magenta_colors_remain_exact(self):
         result=wordart.extract_wordart_asset(self.member,self.write(self.raw),self.root/"assets")
         self.assertEqual(len(result["assets"]),1)
@@ -115,9 +134,9 @@ class StandaloneWordartTests(unittest.TestCase):
         self.assertEqual(result["assets"][0]["crop_box"],[10,10,139,28])
         self.assertEqual(result["assets"][0]["source_size"],[129,18])
 
-    def test_each_canvas_edge_rejects_even_one_core_pixel(self):
+    def test_each_canvas_edge_rejects_even_one_stronger_pixel(self):
         for x,y in ((0,15),(159,15),(90,0),(90,39)):
-            pixels=self.raw.copy();pixels[y,x]=[255,255,255,2]
+            pixels=self.raw.copy();pixels[y,x]=[255,255,255,255]
             with self.subTest(point=(x,y)),self.assertRaisesRegex(ValueError,"edge"):
                 wordart.validate_wordart_output(self.write(pixels))
 

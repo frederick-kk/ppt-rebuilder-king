@@ -7,8 +7,8 @@ from pathlib import Path, PurePosixPath
 import re
 
 
-PACKAGE_ID = 'PPT Rebuilder King-20261108-flow-r1'
-ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip'
+PACKAGE_ID = 'PPT Rebuilder King-20261117-controller-r28'
+ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261117-controller-r28.zip'
 RUNTIME_ROOT = Path(__file__).resolve().parent.parent
 _CRITICAL_FILES = {'newpath/version.py', 'newpath/controller.py',
                    'newpath/__main__.py', 'newpath/execution.py'}

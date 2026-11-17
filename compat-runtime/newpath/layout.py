@@ -10,6 +10,7 @@ import math
 import re
 
 FORMAT = "newpath.scene/1"
+SOURCE_LAYOUT_POLICY = "source-layout-first/1"
 FONT = "Microsoft YaHei"
 SHAPES = {"rect", "roundRect", "ellipse", "triangle", "chevron", "leftArrow",
           "rightArrow", "upArrow", "downArrow", "leftRightArrow", "upDownArrow"}
@@ -30,6 +31,25 @@ def _box(value, label):
     if not isinstance(value, (list, tuple)) or len(value) != 4:
         raise ValueError(f"{label} must be [x, y, width, height]")
     return [_number(v, f"{label}[{i}]", positive=i >= 2) for i, v in enumerate(value)]
+
+
+def _foreground_box(value, label):
+    box = _box(value, label)
+    x, y, width, height = box
+    if x < 0 or y < 0 or x + width > 1920 or y + height > 1080:
+        raise ValueError(f"{label} must stay inside the 1920 by 1080 generated foreground")
+    return box
+
+
+def _source_bounds(value, label):
+    if not isinstance(value, (list, tuple)) or len(value) != 4:
+        raise ValueError(f"{label} must be [left, top, right, bottom]")
+    bounds = [_number(v, f"{label}[{i}]") for i, v in enumerate(value)]
+    left, top, right, bottom = bounds
+    _box([left, top, right - left, bottom - top], label)
+    if left < 0 or top < 0 or right > 1920 or bottom > 1080:
+        raise ValueError(f"{label} must stay inside the 1920 by 1080 working source")
+    return bounds
 
 
 def _color(value, label, *, nullable=False):
@@ -76,12 +96,40 @@ def _typography(src, label):
     }
 
 
-def normalize_layout(payload: dict) -> dict:
+def _observed_box(src, label):
+    observations = {}
+    bounds = None
+    if "source_bounds" in src:
+        bounds = _source_bounds(src["source_bounds"], f"{label}.source_bounds")
+        observations["source_bounds"] = bounds
+    if "source_parts" in src:
+        parts = src["source_parts"]
+        if not isinstance(parts, list) or not parts:
+            raise ValueError(f"{label}.source_parts must be a nonempty list")
+        clean = []
+        for index, part in enumerate(parts):
+            part_label = f"{label}.source_parts[{index}]"
+            if not isinstance(part, dict) or "bounds" not in part or set(part) - {"name", "bounds"}:
+                raise ValueError(f"{part_label} must contain bounds and an optional name")
+            clean.append({"name": _text(part.get("name", f"part-{index + 1:02d}"), f"{part_label}.name"),
+                          "bounds": _source_bounds(part["bounds"], f"{part_label}.bounds")})
+        observations["source_parts"] = clean
+        bounds = [min(part["bounds"][0] for part in clean), min(part["bounds"][1] for part in clean),
+                  max(part["bounds"][2] for part in clean), max(part["bounds"][3] for part in clean)]
+    if bounds is None:
+        return {"box": _box(src.get("box"), f"{label}.box")}
+    left, top, right, bottom = bounds
+    return {"box": [left, top, right - left, bottom - top], **observations}
+
+
+def normalize_layout(payload: dict, *, source_layout_policy=None) -> dict:
     """Expand named styles, validate values and return one canonical scene.
 
     This function is pure. IDs, derived order and defaults are stable on a
     second call, so a saved canonical scene can be rendered directly.
     """
+    if source_layout_policy not in (None, SOURCE_LAYOUT_POLICY):
+        raise ValueError("Unsupported source-layout policy")
     if not isinstance(payload, dict):
         raise ValueError("layout must be an object")
     if payload.get("format", FORMAT) != FORMAT:
@@ -97,12 +145,12 @@ def normalize_layout(payload: dict) -> dict:
     result = []
     common = {"kind", "id", "box", "order", "z", "style"}
     fields = {
-        "text": {"text", "runs", "size", "color", "bold", "italic", "underline", "font", "align", "vertical", "rotation", "tracking"},
-        "shape": {"shape", "fill", "stroke", "stroke_width", "dash", "opacity", "rotation"},
+        "text": {"text", "runs", "size", "color", "bold", "italic", "underline", "font", "align", "vertical", "rotation", "tracking", "source_bounds"},
+        "shape": {"shape", "fill", "stroke", "stroke_width", "dash", "opacity", "rotation", "source_bounds"},
         "line": {"points", "stroke", "stroke_width", "dash", "start_arrow", "end_arrow"},
-        "table": {"rows", "column_widths", "row_heights", "size", "color", "fill", "gridcolor", "grid_width", "font"},
-        "art": {"description", "target", "presentation", "lettering", "embedded_image"},
-        "formula": {"text", "size", "color", "font"},
+        "table": {"rows", "column_widths", "row_heights", "size", "color", "fill", "gridcolor", "grid_width", "font", "source_bounds"},
+        "art": {"description", "target", "presentation", "lettering", "embedded_image", "source_bounds", "source_parts", "foreground_box"},
+        "formula": {"text", "size", "color", "font", "source_bounds"},
     }
     next_id = 1
     for index, raw in enumerate(raw_items):
@@ -136,7 +184,7 @@ def normalize_layout(payload: dict) -> dict:
         if "z" in src:
             item["z"] = _number(src["z"], f"{ident}.z")
         if kind != "line":
-            item["box"] = _box(src.get("box"), f"{ident}.box")
+            item.update(_observed_box(src, ident))
         elif "box" in src:
             item["box"] = _box(src["box"], f"{ident}.box")
         if kind == "text":
@@ -221,10 +269,55 @@ def normalize_layout(payload: dict) -> dict:
                     item["presentation"] = "rectangle"
             if src.get("lettering") is not None:
                 item["lettering"] = _text(src["lettering"], f"{ident}.lettering", single=False)
+            if "foreground_box" in src:
+                item["foreground_box"] = _foreground_box(src["foreground_box"], f"{ident}.foreground_box")
         else:
             item["text"] = _text(src.get("text"), f"{ident}.text")
             item["size"] = _number(src.get("size", 32), f"{ident}.size", positive=True)
             item["color"] = _color(src.get("color", "000000"), f"{ident}.color")
             item["font"] = _font(src.get("font", "Cambria Math"), "Cambria Math", ident)
         result.append(item)
-    return {"format": FORMAT, "items": result}
+    scene = {"format": FORMAT, "items": result}
+    if source_layout_policy == SOURCE_LAYOUT_POLICY:
+        regions = payload.get("background_regions", [])
+        if not isinstance(regions, list):
+            raise ValueError("layout.background_regions must be a list")
+        normalized = []
+        explicit_regions = {
+            region.get("id") for region in regions
+            if isinstance(region, dict) and isinstance(region.get("id"), str)
+        }
+        next_region = 1
+        for index, region in enumerate(regions):
+            if not isinstance(region, dict) or set(region) - {"id", "box", "description", "source_bounds"}:
+                raise ValueError(f"background region {index + 1} has unsupported fields")
+            identifier = region.get("id")
+            if identifier is None:
+                while f"bg{next_region:03d}" in used or f"bg{next_region:03d}" in explicit_regions:
+                    next_region += 1
+                identifier = f"bg{next_region:03d}"
+                next_region += 1
+            if not isinstance(identifier, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.-]{0,127}", identifier):
+                raise ValueError(f"background region {index + 1} id must be a safe unique name")
+            if identifier in used:
+                raise ValueError(f"duplicate background region id: {identifier}")
+            used.add(identifier)
+            normalized.append({
+                "id": identifier,
+                **_observed_box(region, identifier),
+                "description": _text(region.get("description"), f"{identifier}.description", single=False),
+            })
+        scene["background_regions"] = normalized
+    if "primary_wordart_id" in payload:
+        primary_id = payload["primary_wordart_id"]
+        if primary_id is not None:
+            if not isinstance(primary_id, str) or not primary_id.strip():
+                raise ValueError("primary_wordart_id must be null or a nonempty artwork id")
+            primary = next((item for item in result if item["id"] == primary_id), None)
+            if (primary is None or primary["kind"] != "art"
+                    or primary.get("embedded_image") is True
+                    or not isinstance(primary.get("lettering"), str)
+                    or not primary["lettering"].strip()):
+                raise ValueError("primary_wordart_id must identify non-embedded art with visible lettering")
+        scene["primary_wordart_id"] = primary_id
+    return scene

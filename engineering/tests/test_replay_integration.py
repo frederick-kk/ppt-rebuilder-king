@@ -49,7 +49,9 @@ class OfflineReplayIntegration(unittest.TestCase):
 
     def test_02_changed_prompt_must_fail_closed(self):
         from engineering.replay_compare import compare
-        candidate = self.candidate('prompt-runtime', 'newpath/prompts.py', 'Background task: Keep', 'Background task: Discard')
+        candidate = self.candidate('prompt-runtime', 'newpath/prompts.py',
+                                   'Background task: Keep the scene and its integrated subjects',
+                                   'Background task: Discard the scene and its integrated subjects')
         report = compare(RUNTIME, candidate, self.fixture, self.root / 'prompt-compare')
         self.assertFalse(report['passed'])
         self.assertIn('No captured result', report['errors']['candidate'])

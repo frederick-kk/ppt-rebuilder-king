@@ -1,4 +1,4 @@
-"""Only alpha=1 edge overspray may continue without regenerating title artwork."""
+"""Preserve alpha1 overspray and mass-bounded detached weak edge groups."""
 import hashlib
 import os
 from pathlib import Path
@@ -61,8 +61,18 @@ class WordartEdgeOverspray(unittest.TestCase):
         info=wordart.validate_wordart_output(self.save(self.pixels()))
         self.assertEqual(info['warnings'],[])
 
-    def test_alpha_greater_than_one_on_each_edge_remains_rejected(self):
-        for alpha in [2,8,16,32,255]:
+    def test_alpha_two_on_each_edge_uses_complete_group_mass_evidence(self):
+        for x,y in [(0,15),(79,15),(40,0),(40,31)]:
+            with self.subTest(point=(x,y)):
+                pixels=self.pixels();pixels[y,x]=[255,31,170,2]
+                path=self.save(pixels);info=wordart.validate_wordart_output(path)
+                warning=next(w for w in info['warnings']
+                             if w.get('reason')=='native_wordart_bounded_weak_edge_overspray')
+                self.assertEqual(warning['edge_validation']['weak_alpha_mass'],2)
+                np.testing.assert_array_equal(np.array(Image.open(path)),pixels)
+
+    def test_stronger_edge_ink_on_each_edge_remains_rejected(self):
+        for alpha in [8,16,32,255]:
             for x,y in [(0,15),(79,15),(40,0),(40,31)]:
                 with self.subTest(alpha=alpha,point=(x,y)):
                     pixels=self.pixels();pixels[y,x]=[255,31,170,alpha]

@@ -20,8 +20,8 @@ try:
 except ImportError:
     version = None
 
-PACKAGE_ID = 'PPT Rebuilder King-20261108-flow-r1'
-ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip'
+PACKAGE_ID = version.PACKAGE_ID
+ARCHIVE_NAME = version.ARCHIVE_NAME
 EXECUTION_MODE = 'explicit-start/1'
 
 

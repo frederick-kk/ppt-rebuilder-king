@@ -182,6 +182,8 @@ def _recorded_paths(document, work, available, missing, external):
                 elif key == 'references' and isinstance(child, list):
                     for reference in child:
                         add(reference, location)
+                elif key == 'presentation' and child in ('cutout', 'rectangle'):
+                    continue
                 elif key == 'input_path' or key in _LOCAL_PATH_KEYS:
                     add(child, location)
                 visit(child, location)
@@ -200,8 +202,12 @@ def _runtime_paths(runtime):
                 paths.append((code / name, 'runtime/newpath/' + name))
     for name in ('SKILL.md', 'MANIFEST.json', 'package.json', 'package-lock.json', 'requirements.txt'):
         paths.append((runtime / name, 'runtime/' + name))
-    for name in ('PROJECT_INSTRUCTIONS.txt', 'docs/CHATGPT_PROJECT_INSTRUCTIONS.txt',
-                 'RELEASE.json', 'LICENSE', 'NOTICE.md'):
+    instructions = 'PROJECT_INSTRUCTIONS.txt'
+    legacy_instructions = 'docs/CHATGPT_PROJECT_INSTRUCTIONS.txt'
+    if (not os.path.lexists(runtime.parent / instructions)
+            and os.path.lexists(runtime.parent / legacy_instructions)):
+        instructions = legacy_instructions
+    for name in (instructions, 'RELEASE.json', 'LICENSE', 'NOTICE.md'):
         paths.append((runtime.parent / name, 'project/' + name))
     return paths
 

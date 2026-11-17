@@ -14,9 +14,16 @@ import re
 import numpy as np
 from PIL import Image
 
+from .matte import _regions
+
 MODE = 'standalone-native-wordart/2'
 _PAGE_SIZE = (1920, 1080)
 _PLACEMENT_PAGE_LIMIT = 4
+_WEAK_COMPONENT_MAX_ALPHA = 3
+_WEAK_COMPONENT_MAX_PIXELS = 8
+_WEAK_COMPONENT_TOTAL_PIXELS = 64
+_WEAK_ALPHA_MASS_DENOMINATOR = 4096
+_PRIMARY_AUTO = object()
 
 
 def _box(value, name):
@@ -53,13 +60,18 @@ def _check_placement_budget(target):
                          'Preserve the provider PNG; no automatic generation is authorized.') from error
 
 
-def select_primary_wordart(arts):
+def select_primary_wordart(arts, *, primary_id=_PRIMARY_AUTO):
     """Return deep copies of the largest written artwork and the remaining art.
 
     Prefer target area, then source y/x and identity for stable ties. Remaining
     objects retain their original order and stay in the ordinary board workflow.
+    An explicit None keeps all art together; an explicit ID selects that member.
     """
     copied = copy.deepcopy(list(arts))
+    if primary_id is None:
+        return None, copied
+    if primary_id is not _PRIMARY_AUTO and (not isinstance(primary_id, str) or not primary_id.strip()):
+        raise ValueError('An explicit primary artwork ID must name eligible written artwork.')
     candidates = []
     for index, member in enumerate(copied):
         lettering = member.get('lettering')
@@ -71,6 +83,11 @@ def select_primary_wordart(arts):
         source = _box(member.get('box'), 'Written artwork source box')
         target = _box(member.get('target', member.get('box')), 'Written artwork target')
         candidates.append(((-target[2]*target[3], source[1], source[0], identity), index))
+    if primary_id is not _PRIMARY_AUTO:
+        selected = next((index for _, index in candidates if copied[index]['id'] == primary_id), None)
+        if selected is None:
+            raise ValueError('The primary artwork ID does not name eligible written artwork.')
+        return copied[selected], copied[:selected] + copied[selected+1:]
     if not candidates:
         return None, copied
     _, chosen = min(candidates, key=lambda candidate: candidate[0])
@@ -103,16 +120,53 @@ def _inspect(path):
         # Some native PNGs contain barely visible alpha=1 overspray at a canvas
         # edge despite a complete inset ink core. Preserve every RGBA byte and
         # continue with an explicit warning; this does not certify the subject.
-        # A core touching an edge, or no core at all, remains a clipping risk.
-        if not np.any(alpha > 1) or any(np.any(edge > 1) for edge in edges.values()):
+        # Strong or connected edge ink remains a clipping risk. Higher-alpha
+        # overspray needs the existing complete weak-group mass recovery.
+        if not np.any(alpha > 1):
             raise ValueError('Standalone wordart touches a canvas edge or has an opaque background')
-        warnings.append({'reason': 'native_wordart_alpha1_edge_overspray',
-                         'edge_max_alpha': 1,
-                         'edge_nonzero_pixels': {name: int(np.count_nonzero(edge))
-                                                 for name, edge in edges.items()},
-                         'all_rgba_pixels_preserved': True,
-                         'message': 'Only alpha=1 overspray touches the canvas; the alpha>1 ink core is fully inset. '
-                                    'All provider pixels are retained without regeneration; visual quality remains unverified.'})
+        edge_max = max(int(edge.max()) for edge in edges.values())
+        if edge_max > 1:
+            core = alpha > 1
+            labels, regions = _regions(core)
+            weak_groups, retained_mass = _weak_alpha_groups(alpha, labels, regions)
+            weak_mass = sum(group['alpha_mass'] for group in weak_groups)
+            if (edge_max > _WEAK_COMPONENT_MAX_ALPHA or not weak_mass or not retained_mass
+                    or weak_mass * _WEAK_ALPHA_MASS_DENOMINATOR > retained_mass):
+                raise ValueError('Standalone wordart touches a canvas edge or has an opaque background')
+            retained = core & ~np.isin(labels, [group['label'] for group in weak_groups])
+            yy, xx = np.nonzero(retained)
+            ink = [int(xx.min()), int(yy.min()), int(xx.max()) + 1, int(yy.max()) + 1]
+            if not (0 < ink[0] < ink[2] < alpha.shape[1]
+                    and 0 < ink[1] < ink[3] < alpha.shape[0]):
+                raise ValueError('Standalone wordart touches a canvas edge or has an opaque background')
+            warnings.append({
+                'reason': 'native_wordart_bounded_weak_edge_overspray',
+                'edge_max_alpha': edge_max,
+                'edge_nonzero_pixels': {name: int(np.count_nonzero(edge))
+                                        for name, edge in edges.items()},
+                'edge_validation': {
+                    'policy': 'bounded-weak-wordart-edge-alpha-mass/1',
+                    'retained_ink_bbox': ink,
+                    'weak_component_count': len(weak_groups),
+                    'weak_pixel_count': sum(group['pixels'] for group in weak_groups),
+                    'weak_alpha_mass': weak_mass,
+                    'retained_alpha_mass': retained_mass,
+                    'max_weak_alpha': _WEAK_COMPONENT_MAX_ALPHA,
+                    'mass_ratio_denominator': _WEAK_ALPHA_MASS_DENOMINATOR,
+                },
+                'all_rgba_pixels_preserved': True,
+                'message': 'Complete disconnected weak edge groups meet the existing opacity-mass '
+                           'geometry limit and the retained ink is fully inset. All provider RGBA '
+                           'pixels are preserved; visual quality remains unverified.',
+            })
+        else:
+            warnings.append({'reason': 'native_wordart_alpha1_edge_overspray',
+                             'edge_max_alpha': 1,
+                             'edge_nonzero_pixels': {name: int(np.count_nonzero(edge))
+                                                     for name, edge in edges.items()},
+                             'all_rgba_pixels_preserved': True,
+                             'message': 'Only alpha=1 overspray touches the canvas; the alpha>1 ink core is fully inset. '
+                                        'All provider pixels are retained without regeneration; visual quality remains unverified.'})
     height, width = pixels.shape[:2]
     info = {'path': str(path.resolve()), 'format': 'PNG', 'size': [width, height],
             'visible_pixels': visible, 'transparent_pixels': transparent,
@@ -128,6 +182,111 @@ def validate_wordart_output(path):
     incorrect text and visual fidelity require a separate recorded review.
     """
     return _inspect(path)[1]
+
+
+def _weak_alpha_groups(alpha, labels, regions):
+    """Classify complete groups using the existing weak-opacity limit."""
+    candidates = []
+    retained_mass = 0
+    for region in regions:
+        left, top, right, bottom = region['box']
+        samples = alpha[top:bottom, left:right][labels[top:bottom, left:right] == region['id']]
+        mass = int(samples.sum(dtype=np.uint64))
+        maximum = int(samples.max())
+        if maximum <= _WEAK_COMPONENT_MAX_ALPHA:
+            candidates.append({
+                'label': region['id'],
+                'box': region['box'],
+                'pixels': int(len(samples)),
+                'max_alpha': maximum,
+                'alpha_mass': mass,
+            })
+        else:
+            retained_mass += mass
+    return candidates, retained_mass
+
+
+def _alpha_mass_bounds(alpha, core, labels, regions, original):
+    """Keep whole stronger groups while bounding disconnected weak opacity."""
+    candidates, retained_mass = _weak_alpha_groups(alpha, labels, regions)
+    weak_mass = sum(region['alpha_mass'] for region in candidates)
+    if not weak_mass or weak_mass * _WEAK_ALPHA_MASS_DENOMINATOR > retained_mass:
+        return original, None
+    geometry = core & ~np.isin(labels, [region['label'] for region in candidates])
+    yy, xx = np.nonzero(geometry)
+    if not len(xx):
+        return original, None
+    bounds = [int(xx.min()), int(yy.min()), int(xx.max()) + 1, int(yy.max()) + 1]
+    # Preserve one-pixel antialias extents and the established fitted position.
+    if all(abs(actual - previous) <= 1 for actual, previous in zip(bounds, original)):
+        return original, None
+    return bounds, {
+        'policy': 'bounded-weak-wordart-alpha-mass/1',
+        'original_ink_bbox': original,
+        'recovered_ink_bbox': bounds,
+        'component_count': len(candidates),
+        'pixel_count': sum(region['pixels'] for region in candidates),
+        'alpha_mass': weak_mass,
+        'retained_alpha_mass': retained_mass,
+        'mass_ratio_denominator': _WEAK_ALPHA_MASS_DENOMINATOR,
+        'preserved_extent_difference_px': 1,
+        'max_alpha': _WEAK_COMPONENT_MAX_ALPHA,
+        'all_rgba_pixels_preserved': True,
+    }
+
+
+def _ink_bounds(alpha):
+    """Use bounded weak islands as geometric evidence while retaining RGBA."""
+    core = alpha > 1
+    yy, xx = np.nonzero(core)
+    if not len(xx):
+        return None, None
+    original = [int(xx.min()), int(yy.min()), int(xx.max())+1, int(yy.max())+1]
+    # A uniformly faint subject has no stronger ink supporting an exclusion.
+    if not np.any(alpha > _WEAK_COMPONENT_MAX_ALPHA):
+        return original, None
+    labels, regions = _regions(core)
+    counts = np.bincount(labels.ravel())
+    candidates = []
+    for region in regions:
+        identity = region['id']
+        count = int(counts[identity])
+        if count > _WEAK_COMPONENT_MAX_PIXELS:
+            continue
+        left, top, right, bottom = region['box']
+        values = alpha[top:bottom,left:right][labels[top:bottom,left:right] == identity]
+        maximum = int(values.max())
+        if maximum <= _WEAK_COMPONENT_MAX_ALPHA:
+            candidates.append({'label':identity, 'box':region['box'],
+                               'pixels':count, 'max_alpha':maximum})
+    total = sum(region['pixels'] for region in candidates)
+    if not 0 < total <= _WEAK_COMPONENT_TOTAL_PIXELS:
+        return _alpha_mass_bounds(alpha,core,labels,regions,original)
+    geometry = core & ~np.isin(labels, [region['label'] for region in candidates])
+    yy, xx = np.nonzero(geometry)
+    bounds = [int(xx.min()), int(yy.min()), int(xx.max())+1, int(yy.max())+1]
+    if bounds == original:
+        return _alpha_mass_bounds(alpha,core,labels,regions,original)
+    return bounds, {'policy':'bounded-weak-wordart-geometry/1',
+                    'original_ink_bbox':original, 'recovered_ink_bbox':bounds,
+                    'ignored_for_geometry_only':candidates, 'pixel_count':total,
+                    'component_pixel_limit':_WEAK_COMPONENT_MAX_PIXELS,
+                    'total_pixel_limit':_WEAK_COMPONENT_TOTAL_PIXELS,
+                    'max_alpha':_WEAK_COMPONENT_MAX_ALPHA,
+                    'all_rgba_pixels_preserved':True}
+
+
+def _fit_ink(ink, target, crop_box):
+    tx, ty, tw, th = target
+    left, top, right, bottom = crop_box
+    iw, ih = ink[2] - ink[0], ink[3] - ink[1]
+    scale = min(tw / iw, th / ih)
+    ink_target = [tx + (tw - iw * scale) / 2, ty + (th - ih * scale) / 2,
+                  iw * scale, ih * scale]
+    picture_target = [ink_target[0] + (left - ink[0]) * scale,
+                      ink_target[1] + (top - ink[1]) * scale,
+                      (right - left) * scale, (bottom - top) * scale]
+    return scale, ink_target, picture_target
 
 
 def extract_wordart_asset(member, path, destination):
@@ -161,11 +320,11 @@ def extract_wordart_asset(member, path, destination):
     # one scale on both axes preserves brush-letter proportions even when an
     # almost invisible alpha=1 halo is many times taller than the ink. Every
     # pixel inside the full nonzero-alpha crop is retained, including that halo.
-    core_y, core_x = np.nonzero(pixels[..., 3] > 1)
-    if len(core_x):
-        ink = [int(core_x.min()), int(core_y.min()),
-               int(core_x.max())+1, int(core_y.max())+1]
+    ink, geometry_recovery = _ink_bounds(pixels[..., 3])
+    if ink is not None:
         basis = 'alpha_greater_than_one'
+        if geometry_recovery:
+            basis = 'alpha_greater_than_one_with_bounded_weak_islands'
     else:
         # A technically valid PNG can contain only alpha=1. Do not divide by an
         # absent core or delete it: fit its complete preserved footprint instead.
@@ -173,16 +332,30 @@ def extract_wordart_asset(member, path, destination):
         basis = 'all_nonzero_alpha_fallback'
         warnings.append({'id': identity, 'reason': 'native_wordart_alpha1_only',
                          'message': 'No ink above alpha=1; complete nonzero footprint used for geometry. Visual quality remains unverified.'})
-    iw, ih = ink[2]-ink[0], ink[3]-ink[1]
-    scale = min(tw/iw, th/ih)
-    ink_target = [tx+(tw-iw*scale)/2, ty+(th-ih*scale)/2,
-                  iw*scale, ih*scale]
-    picture_target = [ink_target[0]+(left-ink[0])*scale,
-                      ink_target[1]+(top-ink[1])*scale,
-                      natural[0]*scale, natural[1]*scale]
+    scale,ink_target,picture_target=_fit_ink(ink,(tx,ty,tw,th),(left,top,right,bottom))
     # This is an engineering bound in slide pixels, not a halo/quality cutoff.
     # Check before publishing any extracted asset; the provider PNG is intact.
-    _check_placement_budget(picture_target)
+    try:
+        _check_placement_budget(picture_target)
+    except ValueError:
+        if not geometry_recovery or geometry_recovery['policy']!='bounded-weak-wordart-alpha-mass/1':
+            raise
+        warnings.append({'id':identity,'reason':'native_wordart_alpha_mass_budget_fallback',
+                         'candidate_ink_bbox':ink,'candidate_picture_target':picture_target,
+                         'retained_ink_bbox':geometry_recovery['original_ink_bbox'],
+                         'all_rgba_pixels_preserved':True,
+                         'message':'The opacity-mass geometry candidate exceeds the placement safety budget; '
+                                   'the established ink geometry is retained.'})
+        ink=geometry_recovery['original_ink_bbox']
+        geometry_recovery=None
+        basis='alpha_greater_than_one'
+        scale,ink_target,picture_target=_fit_ink(ink,(tx,ty,tw,th),(left,top,right,bottom))
+        _check_placement_budget(picture_target)
+    if geometry_recovery:
+        warnings.append({'id':identity, 'reason':'native_wordart_weak_geometry_fragments',
+                         **geometry_recovery,
+                         'message':'Bounded weak disconnected islands affect the retained picture frame only; '
+                                   'stronger ink defines placement. Every original RGBA pixel remains unchanged.'})
     asset['target'] = picture_target
     asset['stretch'] = [scale, scale]
     asset['placement'] = {'policy': 'preserve-native-alpha-uniform-contain/2',
@@ -190,6 +363,8 @@ def extract_wordart_asset(member, path, destination):
                           'alpha_threshold_for_geometry_only': 1,
                           'visible_ink_target': ink_target, 'uniform_scale': scale,
                           'all_rgba_pixels_preserved': True}
+    if geometry_recovery:
+        asset['placement']['geometry_recovery'] = geometry_recovery
     if any(not math.isclose(actual, desired, rel_tol=1e-12, abs_tol=1e-9)
            for actual, desired in zip(picture_target, (tx, ty, tw, th))):
         warnings.append({'id': identity, 'reason': 'native_wordart_uniform_contain_fit',

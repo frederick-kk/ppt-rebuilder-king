@@ -212,12 +212,15 @@ class RepackRuntime(unittest.TestCase):
             self.build()
         self.assertFalse((self.root / 'out').exists())
 
-    def prepare_complete_archive(self):
+    def prepare_complete_archive(self, include_prompt=False):
         runtime = self.expected
         data = {'compat-runtime/' + name: body for name, body in runtime.items()}
         data['PROJECT_INSTRUCTIONS.txt'] = (self.source / 'PROJECT_INSTRUCTIONS.txt').read_bytes()
+        if include_prompt:
+            data['PROMPT.txt'] = b'Restore the supplied screenshot.\n'
+            (self.source / 'PROMPT.txt').write_bytes(data['PROMPT.txt'])
         data['PACKAGE_MANIFEST.json'] = repack.encoded({
-            'format': 'ppt-rebuilder.quality-test/1', 'package_id': repack.BASELINE_ROOT,
+            'format': 'ppt-rebuilder.runtime-distribution/1', 'package_id': repack.BASELINE_ROOT,
             'archive_name': 'approved-complete.zip',
             'runtime_manifest_sha256': repack.sha(runtime['MANIFEST.json']),
             'files': repack.inventory(data),
@@ -250,8 +253,46 @@ class RepackRuntime(unittest.TestCase):
         (self.source / 'compat-runtime/SKILL.md').write_bytes(runtime['SKILL.md'])
         self.baseline = baseline
 
-    def test_complete_release_exports_exact_optional_prompt_and_checksums(self):
+    def test_current_runtime_distribution_archive_verifies(self):
+        self.prepare_complete_archive(include_prompt=True)
+        result = repack.verify_public(self.baseline)
+        self.assertTrue(result['valid'])
+        self.assertTrue(result['complete_archive_byte_identical_to_approved_download'])
+        self.assertEqual(result['runtime_files_compared'], len(self.expected))
+
+    def test_complete_archive_prompt_must_match_public_source(self):
+        self.prepare_complete_archive(include_prompt=True)
+        self.meta['prompt_name'] = 'restore-prompt.txt'
+        self.write('RELEASE.json', json.dumps(self.meta))
+        for index, body in enumerate((b'Changed restoration request.\n', None)):
+            with self.subTest(body=body):
+                prompt = self.source / 'PROMPT.txt'
+                if body is None:
+                    prompt.unlink()
+                else:
+                    prompt.write_bytes(body)
+                with self.assertRaisesRegex(ValueError, 'Prompt differs'):
+                    self.build('changed-prompt-' + str(index))
+                self.assertFalse((self.root / ('changed-prompt-' + str(index))).exists())
+
+    def test_complete_archive_instructions_must_match_public_source(self):
         self.prepare_complete_archive()
+        self.write('RELEASE.json', json.dumps(self.meta))
+        self.write('PROJECT_INSTRUCTIONS.txt', 'Changed project instructions.\n')
+        with self.assertRaisesRegex(ValueError, 'Project instructions differ'):
+            self.build()
+        self.assertFalse((self.root / 'out').exists())
+
+    def test_changed_complete_archive_fails_before_output_creation(self):
+        self.prepare_complete_archive()
+        self.write('RELEASE.json', json.dumps(self.meta))
+        self.baseline.write_bytes(self.baseline.read_bytes() + b'changed')
+        with self.assertRaisesRegex(ValueError, 'approved download'):
+            self.build()
+        self.assertFalse((self.root / 'out').exists())
+
+    def test_complete_release_exports_exact_optional_prompt_and_checksums(self):
+        self.prepare_complete_archive(include_prompt=True)
         self.meta['prompt_name'] = 'restore-prompt.txt'
         (self.source / 'PROMPT.txt').write_bytes(b'Restore the supplied screenshot.\n')
         self.write('RELEASE.json', json.dumps(self.meta))

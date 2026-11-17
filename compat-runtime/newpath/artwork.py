@@ -2,9 +2,11 @@
 
 Board geometry and alpha interpretation are separate strategies. Legacy boards
 consult source colours for matte risk; native boards use provider RGBA directly.
-Every drawn reference pixel comes from the newly generated full foreground.
+Foreground-reference boards draw from the generated full foreground.
+Direct-source boards draw from unchanged working pixels and record that origin.
 """
 from __future__ import annotations
+import copy
 import hashlib
 import json
 import math
@@ -13,9 +15,11 @@ import re
 import numpy as np
 from PIL import Image
 from .boardplan import plan_boards
-from .cellmap import resolve_cells
+from .cellmap import FIXED_GRID_POLICY, resolve_cells
 from .matte import choose_key, collision_mask, edge_background_mask, erase_matte, estimate_background, select_subject, _regions
 from .native import MODE, validate_native_output
+from .layout import _foreground_box
+from .prompts import BOARD_REFERENCE_POLICY, SOURCE_BOARD_REFERENCE_POLICY
 from .wordart import _check_placement_budget
 
 _KEY_RGB = {'magenta':(255,0,255),'green':(0,255,0),'cyan':(0,255,255),'yellow':(255,255,0)}
@@ -61,11 +65,15 @@ def validate_output(path,key=None):
     return _inspect(path,key)[2]
 
 
-def prepare_boards(source,foreground,arts,out,*,background_mode=None):
+def prepare_boards(source,foreground,arts,out,*,background_mode=None,sampling_policy=None,reference_policy=None):
+    if reference_policy not in (None, BOARD_REFERENCE_POLICY):
+        raise ValueError('Unsupported board reference policy')
+    if reference_policy is not None and background_mode != MODE:
+        raise ValueError('The embedded-image reference policy requires native RGBA materials')
     if background_mode is not None and background_mode != MODE:
         raise ValueError('Unsupported material background mode')
     if not arts:
-        return []
+        return plan_boards([],sampling_policy=sampling_policy)
     original=_open_png(source)
     generated=_open_png(foreground)
     if original.size!=(1920,1080) or generated.size!=original.size:
@@ -93,7 +101,43 @@ def prepare_boards(source,foreground,arts,out,*,background_mode=None):
         rekey_pixels[sealed]=full_pixels[sealed]
     clean_foreground=Image.fromarray(clean_pixels)
     rekey_foreground=Image.fromarray(rekey_pixels)
-    plans=plan_boards(arts,original.size)
+    return _build_reference_boards(original, clean_foreground, rekey_foreground, arts, out,
+        native=native, sampling_policy=sampling_policy, reference_policy=reference_policy)
+
+
+def prepare_source_boards(source, arts, out, *, background_mode=MODE,
+                          sampling_policy=None, reference_policy=None):
+    """Build references from unchanged source pixels; generated returns stay native."""
+    if background_mode != MODE:
+        raise ValueError('Direct source boards require native generated material outputs')
+    if reference_policy not in (None, BOARD_REFERENCE_POLICY):
+        raise ValueError('Unsupported board reference policy')
+    if not arts:
+        return plan_boards([], sampling_policy=sampling_policy)
+    original = _open_png(source)
+    if original.size != (1920, 1080):
+        raise ValueError('Source references require the normalized 1920x1080 working source')
+    if len({art['id'] for art in arts}) != len(arts):
+        raise ValueError('Artwork ids must be unique')
+    provenance = {
+        'kind': 'unchanged-working-source',
+        'source_sha256': hashlib.sha256(Path(source).read_bytes()).hexdigest(),
+        'rgba_pixels_sha256': hashlib.sha256(original.tobytes()).hexdigest(),
+        'size': list(original.size),
+    }
+    return _build_reference_boards(original, original, original, arts, out, native=True,
+        sampling_policy=sampling_policy, reference_policy=reference_policy,
+        source_provenance=provenance)
+
+
+def _build_reference_boards(original, clean_foreground, rekey_foreground, arts, out, *,
+                            native, sampling_policy, reference_policy,
+                            source_provenance=None):
+    """Share planning and board publication while keeping reference origin explicit."""
+    foreground_boxes = ({art['id']: _foreground_box(art['foreground_box'], art['id'] + '.foreground_box')
+                         for art in arts if 'foreground_box' in art}
+                        if source_provenance is None else {})
+    plans=plan_boards(arts,original.size,sampling_policy=sampling_policy)
     out=Path(out).resolve();out.mkdir(parents=True,exist_ok=True)
     results=[]
     for plan in plans:
@@ -107,7 +151,35 @@ def prepare_boards(source,foreground,arts,out,*,background_mode=None):
             inset_xy=list(placement.get('inset_xy',[inset,inset]))
             source_crop=None if native else np.asarray(original.crop(placement['crop']))
             conflict=False if native else bool(np.any(collision_mask(source_crop,'magenta')))
-            cropped=(rekey_foreground if conflict and key!='magenta' else clean_foreground).crop(placement['crop'])
+            foreground_box = foreground_boxes.get(art['id'])
+            crop_bounds = placement['crop']
+            if foreground_box is not None:
+                x, y, width, height = foreground_box
+                crop_bounds = [math.floor(x), math.floor(y), math.ceil(x + width), math.ceil(y + height)]
+            cropped=(rekey_foreground if conflict and key!='magenta' else clean_foreground).crop(crop_bounds)
+            exclusions = None
+            owned_image = reference_policy is not None and art.get('embedded_image') is True
+            if source_provenance is not None or (owned_image and foreground_box is None):
+                x, y, width, height = art['box']
+                cx0, cy0, cx1, cy1 = placement['crop']
+                pixels = np.asarray(cropped).copy()
+                keep = np.zeros(pixels.shape[:2], dtype=bool)
+                keep[max(0, math.floor(y)-cy0):min(cy1-cy0, math.ceil(y+height)-cy0),
+                     max(0, math.floor(x)-cx0):min(cx1-cx0, math.ceil(x+width)-cx0)] = True
+                pixels[~keep] = 0
+                cropped = Image.fromarray(pixels)
+            if owned_image and foreground_box is None:
+                exclusions = []
+                for other in arts:
+                    ox, oy, ow, oh = other['box']
+                    if (other['id'] == art['id'] or ox >= cx1 or oy >= cy1
+                            or ox+ow <= cx0 or oy+oh <= cy0):
+                        continue
+                    exclusion = {'id': other['id'], 'source_box_pixels': list(other['box']),
+                                 'description': other.get('description', '')}
+                    if 'lettering' in other:
+                        exclusion['lettering'] = other['lettering']
+                    exclusions.append(exclusion)
             if conflict:
                 reference_warnings.append({'id':art['id'],'code':'source_matte_collision_unresolved'})
             if not np.any(np.asarray(cropped)[...,3]):
@@ -121,21 +193,36 @@ def prepare_boards(source,foreground,arts,out,*,background_mode=None):
                     'inset_px':inset,'rendered_size':rendered,
                     'pixel_budget':placement.get('pixel_budget',{})}
             if 'inset_xy' in placement:member['inset_xy']=inset_xy
+            if foreground_box is not None:
+                member['foreground_box'] = list(foreground_box)
+                member['foreground_crop_pixels'] = list(crop_bounds)
+            if exclusions is not None:
+                member['context_exclusions'] = exclusions
             for optional in ('lettering','z','embedded_image'):
                 if optional in art:member[optional]=art[optional]
             members.append(member)
-            member_identity={'id':art['id'],'slot':slot,'crop':placement['crop'],'inset_px':inset,
+            member_identity={'id':art['id'],'slot':slot,'crop':crop_bounds,'inset_px':inset,
                              'inset_xy':inset_xy,
                              'description':member['description'],'lettering':member.get('lettering'),
                              'pixels_sha256':hashlib.sha256(cropped.tobytes()).hexdigest()}
+            if foreground_box is not None:
+                member_identity['foreground_box'] = list(foreground_box)
             if 'embedded_image' in member:
                 member_identity['embedded_image']=member['embedded_image']
+            if exclusions is not None:
+                member_identity['context_exclusions'] = exclusions
             identity.append(member_identity)
             drawings.append((ref,slot,rendered))
         content={'policy':plan['policy'],'reference_policy':_REFERENCE_POLICY,'size':size,'key':key,
                  'grid':plan.get('grid'),'members':identity,'reference_warnings':reference_warnings}
         if native:
             content.update(background_mode=MODE,reference_policy=MODE)
+        owned_images = reference_policy is not None and any(member.get('embedded_image') is True for member in members)
+        if owned_images:
+            content['board_reference_policy'] = reference_policy
+        if source_provenance is not None:
+            content['source_board_reference_policy'] = SOURCE_BOARD_REFERENCE_POLICY
+            content['reference_provenance'] = copy.deepcopy(source_provenance)
         signature=hashlib.sha256(json.dumps(content,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         ident='board-'+signature[:20];path=out/(ident+'.png')
         if not path.exists():
@@ -151,6 +238,11 @@ def prepare_boards(source,foreground,arts,out,*,background_mode=None):
                         'key':key,'members':members,'signature':signature,'planning_policy':plan['policy'],
                         'pixel_budget':plan.get('pixel_budget',{}),'reference_warnings':reference_warnings}
         if native:board['background_mode']=MODE
+        if owned_images:
+            board['board_reference_policy'] = reference_policy
+        if source_provenance is not None:
+            board['source_board_reference_policy'] = SOURCE_BOARD_REFERENCE_POLICY
+            board['reference_provenance'] = copy.deepcopy(source_provenance)
         if 'grid' in plan:board['grid']=plan['grid']
         results.append(board)
     return results
@@ -224,6 +316,26 @@ def _retain_interior_lettering(slot,selected,key):
     mask=np.isin(labels,restore)
     result=selected.copy();result[mask]=slot[mask]
     return result,int(np.count_nonzero(mask))
+
+
+def inspect_board_cells(board,actual_image):
+    """Read cell geometry without extracting files or certifying visual quality."""
+    native=board.get('background_mode')==MODE
+    raw=_open_png(actual_image)
+    pixels=np.asarray(raw)
+    if not native:
+        pixels=erase_matte(pixels,board['key'])
+    reference=None
+    if board.get('image') and Path(board['image']).is_file():
+        reference=np.asarray(_open_png(board['image']))
+        if not native:reference=erase_matte(reference,board['key'])
+    mapping=resolve_cells(board,pixels[...,3],check_canvas_edges=native,
+                          reference_alpha=None if reference is None else reference[...,3],
+                          native_geometry=native)
+    return {'complete':not mapping['unsafe_members'],
+            'unsafe_members':list(mapping['unsafe_members']),
+            'cell_mapping_status':mapping['status'],
+            'scope':'existing_return_cell_geometry_not_visual_fidelity_or_host_role_review'}
 
 
 def extract_assets(board,actual_image,destination):
@@ -303,6 +415,9 @@ def extract_assets(board,actual_image,destination):
             warn('empty_selected_slot');continue
         left,top,right,bottom=int(xx.min()),int(yy.min()),int(xx.max())+1,int(yy.max())+1
         sh,sw=slot.shape[:2]
+        fixed_grid = native and mapping.get('geometry_policy') == FIXED_GRID_POLICY
+        if fixed_grid:
+            left, top, right, bottom = 0, 0, sw, sh
         if left==0 or top==0 or right==sw or bottom==sh:warn('touch_slot_edge')
         insets=member.get('inset_xy',[member.get('inset_px',0)]*2)
         ix=insets[0]*actual_w/board['size'][0];iy=insets[1]*actual_h/board['size'][1]
@@ -333,11 +448,16 @@ def extract_assets(board,actual_image,destination):
                'returned_pixel_budget':returned_budget}
         if 'z' in member:asset['z']=member['z']
         if native:asset['background_mode']=MODE
-        if native and mapping.get('geometry_policy')=='native-core-local-rows/1':
+        if native and mapping.get('geometry_policy') in ('native-core-local-rows/1', FIXED_GRID_POLICY):
             # Fit the visible subject to the same authored target as before,
             # while keeping the complete faint RGBA frame with its true offset.
-            cy,cx=np.nonzero(selected[...,3]>1)
-            core=[int(cx.min()),int(cy.min()),int(cx.max())+1,int(cy.max())+1]
+            recovered_core=mapping.get('member_geometry_boxes',{}).get(member['id'])
+            if recovered_core:
+                core=[recovered_core[0]-x0,recovered_core[1]-y0,
+                      recovered_core[2]-x0,recovered_core[3]-y0]
+            else:
+                cy,cx=np.nonzero(selected[...,3]>1)
+                core=[int(cx.min()),int(cy.min()),int(cx.max())+1,int(cy.max())+1]
             sx,sy=target[2]/(core[2]-core[0]),target[3]/(core[3]-core[1])
             picture=[target[0]+(left-core[0])*sx,target[1]+(top-core[1])*sy,
                      natural[0]*sx,natural[1]*sy]
@@ -347,11 +467,16 @@ def extract_assets(board,actual_image,destination):
             asset.update(authored_target=list(target),target=picture,stretch=[sx,sy],
                          placement={'policy':'preserve-native-alpha-authored-stretch/1',
                                     'core_bbox':core,'visible_core_target':list(target),
-                                    'alpha_threshold_for_geometry_only':1,
+                                    'alpha_threshold_for_geometry_only':16 if fixed_grid else 1,
                                     'all_rgba_pixels_preserved':True})
+            if recovered_core:
+                asset['placement']['geometry_source'] = (FIXED_GRID_POLICY if fixed_grid
+                                                         else 'reference_fragment_recovery')
         if recovered_lettering:asset['lettering_recovered_pixels']=recovered_lettering
         Image.fromarray(crop).save(path,format='PNG')
         assets.append(asset)
     # Deferred checks on later members may have changed the overall status.
-    for asset in assets:asset['cell_mapping_status']=mapping['status']
+    preserved_statuses = mapping.get('preserved_asset_statuses', {})
+    for asset in assets:
+        asset['cell_mapping_status'] = preserved_statuses.get(asset['id'], mapping['status'])
     return {'assets':assets,'warnings':warnings,'cell_mapping':mapping}

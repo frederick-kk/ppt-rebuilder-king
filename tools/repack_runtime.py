@@ -25,13 +25,13 @@ RUNTIME_COUNT = 423
 ARCHIVE_ROOT = 'PPT Rebuilder King'
 RUNTIME_NAME = 'PPT-Rebuilder-King-ChatGPT-20261105.zip'
 SOURCE_NAME = 'PPT-Rebuilder-King-20261105-source.zip'
-COMPLETE_ARCHIVE_SHA256 = '9f98c26ecb055bb5eb1f1b8bfa9409be7e79bae108102a7bc50a33c91dbb6047'
-COMPLETE_ARCHIVE_ROOT = 'PPT Rebuilder King-20261108-flow-r1'
-COMPLETE_ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261108-flow-r1.zip'
-COMPLETE_ARCHIVE_MEMBERS = 784
-COMPLETE_RUNTIME_MANIFEST_SHA256 = 'eac29a95575b276a90499a1b9918eba39f274c7acfe81071c3ef9cdf6e63a16f'
-COMPLETE_RUNTIME_SNAPSHOT_SHA256 = '7423a29d88ea651f05c25f892bfc858d42b72c64da4850dfec3681b35ea56f16'
-COMPLETE_RUNTIME_COUNT = 425
+COMPLETE_ARCHIVE_SHA256 = '12e512c8aeeff563f10c7915d54db77326b464c336d326b454dd6455e0f67399'
+COMPLETE_ARCHIVE_ROOT = 'PPT Rebuilder King-20261117-controller-r28'
+COMPLETE_ARCHIVE_NAME = 'PPT-Rebuilder-King-ChatGPT-20261117-controller-r28.zip'
+COMPLETE_ARCHIVE_MEMBERS = 455
+COMPLETE_RUNTIME_MANIFEST_SHA256 = '6e3d8b2c4292b57056f1fe44e4280a4457b8a826b0a4b9aacd81795277659713'
+COMPLETE_RUNTIME_SNAPSHOT_SHA256 = '4956f18fe3a334922cf807e294c05f78214f1de0a806b7190e2a04d10fecc9cc'
+COMPLETE_RUNTIME_COUNT = 426
 RUNTIME_DOCS = frozenset({
     'PROJECT_INSTRUCTIONS.txt', 'README.zh-CN.md', 'LICENSE', 'NOTICE.md',
     'THIRD_PARTY_LICENSES.md', 'KNOWN_ISSUES.md', 'RELEASE.json',
@@ -165,7 +165,8 @@ def complete_archive(path):
         raise ValueError('Complete archive root or inventory differs')
     data = {name[len(prefix):]: body for name, body in files.items()}
     manifest = json.loads(data['PACKAGE_MANIFEST.json'])
-    if (manifest.get('format') != 'ppt-rebuilder.quality-test/1'
+    if (manifest.get('format') not in {
+            'ppt-rebuilder.quality-test/1', 'ppt-rebuilder.runtime-distribution/1'}
             or manifest.get('package_id') != COMPLETE_ARCHIVE_ROOT
             or manifest.get('archive_name') != COMPLETE_ARCHIVE_NAME
             or manifest.get('runtime_manifest_sha256') != COMPLETE_RUNTIME_MANIFEST_SHA256):
@@ -415,6 +416,8 @@ def build_complete(baseline, public_source, output):
                 raise ValueError('Public source differs from approved runtime: ' + name)
     if public_source['PROJECT_INSTRUCTIONS.txt'] != data['PROJECT_INSTRUCTIONS.txt']:
         raise ValueError('Project instructions differ from approved complete archive')
+    if 'PROMPT.txt' in data and public_source.get('PROMPT.txt') != data['PROMPT.txt']:
+        raise ValueError('Prompt differs from approved complete archive')
     names = [meta['archive_name'], meta['source_archive_name'],
              meta['project_instructions_name'], meta['sha256sums_name']]
     prompt_name = meta.get('prompt_name')

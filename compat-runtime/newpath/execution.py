@@ -7,12 +7,139 @@ from pathlib import Path
 import re
 
 from .storage import fingerprint,read_state,relative_file,sha256,write_json
+from .prompts import BACKGROUND_CONTAINER_POLICY_ID, BOARD_REFERENCE_POLICY, SOURCE_BOARD_REFERENCE_POLICY
+from .prompts import _background_layer_allocation
+from .source import TITLE_REFERENCE_POLICY
 
 MODE='explicit-start/1'
 POST_RETURN_PROMPT_POLICY='audit-existing-return/1'
 PROVENANCE='caller_declared_before_invocation_not_provider_verified'
 PROMPT_AUDIT_PROVENANCE='caller_reported_executed_prompt_not_provider_verified'
 STATES={'not_started','invoking','returned','recorded','failed'}
+
+def _invocation_instructions(task,request):
+    role=task['role']
+    mode='真实透明PNG（空区alpha 0）' if request['transparent_background'] else '不透明PNG'
+    containers_in_background=task.get('decorative_background_policy')==BACKGROUND_CONTAINER_POLICY_ID
+    scope=task.get('source_layer_scope')
+    if role in ('background','foreground') and scope is not None:
+        allocation=task['scene_allocation']
+        scenes=json.dumps(allocation['background_regions'],ensure_ascii=False,sort_keys=True,separators=(',',':'))
+        regions=allocation['foreground_regions']
+        if role=='background':
+            containers=('保留未分配为前景art的所有层级空纸底、金框、卡片轮廓及分隔。' if containers_in_background else
+                        '移除分配给前景art的纸框和卡片。')
+            background_payload={'scene_allocation':_background_layer_allocation(allocation),'source_layer_scope':scope}
+            goal=('只生成空背景。'+containers+'按冻结background_regions原位、比例和轮廓保留场景、固有图内文字及固定品牌标识。'
+                  '已分配的空底托、容器、分隔和原生装饰图形按背景清单保留，平面或简单轮廓也保留。'
+                  '清除完整art组，包括完整红牌、刷底、徽章背板及主标题自带圆弧和笔刷，不能留下去字后的空红条或空徽章。'
+                  '清除普通页面文字、独立图片完整矩形及图内文字和人物；未分配给背景的原生图形、连接线、箭头及表格内容清除，恢复下方已分配背景或空容器。'
+                  '所有box为[x,y,width,height]，单位是1920×1080工作图像素。'
+                  '冻结背景与完整art清除清单'+json.dumps(background_payload,ensure_ascii=False,sort_keys=True,separators=(',',':'))+'。')
+        else:
+            by_id={region['id']:region for region in regions}
+            required=[by_id[identity] for identity in scope['board_member_ids']]
+            goal=('仅生成组件板参考成员，保持原工作位置、比例、完整主体和自带衬底。'
+                  '不生成独立主标题、普通正文、原生几何、连接线、箭头及表格；独立图片保持完整矩形和图内文字、人物及全部内容。'
+                  '仅保留本成员分配的纸框或卡片，移除背景固定容器；清空同一背景融景'+scenes+'。'
+                  '参考字形差异记入observed，后续按冻结layout及真实原图生成最终字样和材质，不能仅因参考字形差异再生成前景。'
+                  '主体缺失、身份错误、严重错位导致指定ROI不可用，或背景人物侵入ROI污染主体，仍须如实判false。'
+                  '本次参考成员'+json.dumps(required,ensure_ascii=False,sort_keys=True,separators=(',',':'))+'。')
+    elif role=='background':
+        if containers_in_background:
+            goal=('只生成空背景。保留分配给底图的融合场景，以及所有层级的空纸底、金框、卡片轮廓及分隔，'
+                  '按原图原位、比例和轮廓保留。清除页面文字、完整艺术字及所属圆弧、刷痕和衬底、刷标、图标和独立内容图片，'
+                  '清除处恢复为空白背景或纸底。')
+        else:
+            goal=('只生成分配的场景背景，移除分配给独立层的纸框、卡片、页面文字、完整艺术字及自带衬底、'
+                  '刷标、图标和独立内容图片。')
+        goal+='简单原生几何、连接线、箭头及表格内容均清除，已分配背景的装饰轮廓和分隔保留。'
+    elif role=='foreground':
+        allocation=('移除分配给背景的场景和固定容器。' if containers_in_background else
+                    '保留本任务分配的纸框、卡片及页面内容，移除背景场景。')
+        goal=('只生成分配的独立页面内容，保留完整图片、文字、艺术字及自带衬底、标签和图标。'+allocation+
+              '保留简单原生几何、连接线、箭头及表格内容的参考外观，供后续原生制作。')
+    elif role=='wordart':
+        member=task.get('member') or {}
+        lettering=member.get('lettering')
+        title='指定完整标题“'+lettering+'”' if lettering else '本任务指定完整标题'
+        goal='只生成'+title+'，保留自带圆弧、笔刷和衬底，按原图整组比例生成。'
+        goal+='主体实色保持实色，不淡化文字。'
+        if request['transparent_background']:
+            goal+='实色笔画alpha 255，主体之外alpha 0，四边保留透明空隙，完整笔画不得触边。'
+        else:
+            goal+='四边保留锁定请求规定的底色空隙，完整笔画不得触边。'
+        if task.get('source_detail') is not None:
+            if task['source_detail'].get('reference_policy') == TITLE_REFERENCE_POLICY:
+                goal+='调用前实际查看本任务唯一参考。它按source_parts保留真实源像素，保留区外已透明，区内可能仍有纸底或装饰。'
+                goal+='只生成指定标题完整组，按真实字样、完整组比例及源行数保留自身圆弧笔刷，源为单行时保持单行横排。'
+                goal+='生成主体需清除剩余纸底、字幕、相邻栏目和整页场景，保留原有白描边，不添加宽白边或光晕。'
+            else:
+                goal+='调用前实际查看本任务references。第一图是真实原图局部，提供完整组的字样、字形及字与圆弧笔刷比例。'
+                goal+='第二图是完整工作原图，提供身份和原位置。按源保持行数，源为单行时保持单行横排。'
+                goal+='只使用本任务references作为生成参考，局部内的其他文段和物件保持在指定组之外。'
+                goal+='保留原有白描边，不添加宽白边或光晕。'
+    elif role=='board':
+        board=task.get('board') or {}
+        grid=board.get('grid') or {}
+        geometry=(str(grid['rows'])+'行'+str(grid['columns'])+'列') if 'rows' in grid and 'columns' in grid else '当前'
+        members=[]
+        for member in board.get('members',[]):
+            label=str(member.get('id',''))
+            if member.get('lettering'):label+='（写“'+member['lettering']+'”）'
+            members.append(label)
+        goal='只生成'+geometry+'格网指定的完整成员，保持槽位、完整边缘和安全空隙，清除无关页面内容。'
+        if members:goal+='成员为'+'、'.join(members)+'。'
+        if board.get('source_board_reference_policy') == SOURCE_BOARD_REFERENCE_POLICY:
+            goal+='第一图由真实原图裁片等比排成参考格网，第二图是完整真实原图，两者不能作为生成结果或交付素材。'
+            goal+='按真实源字样和外观生成新的组件板；轮廓素材去掉源场景底，完整矩形图片的图内文字和全部内容保留。'
+        if board.get('board_reference_policy') == BOARD_REFERENCE_POLICY:
+            ownership = [{'id': member['id'], 'context_exclusions': member.get('context_exclusions', [])}
+                         for member in board.get('members', []) if member.get('embedded_image') is True]
+            goal+='完整矩形图片按自身source_box生成，其他独立ID的标题或标签不并入该图片，即使原图边缘有叠压也不补成图内标签。'
+            goal+='真实图内文字、logo和人物仍完整保留，不添加caption面板。各图片独立归属'+json.dumps(
+                ownership,ensure_ascii=False,sort_keys=True,separators=(',',':'))+'。'
+    else:
+        goal='只生成当前锁定请求指定的内容。'
+    allocation=task.get('scene_allocation')
+    if role in ('background','foreground') and allocation is not None and scope is None:
+        scenes=json.dumps(allocation['background_regions'],ensure_ascii=False,sort_keys=True,separators=(',',':'))
+        content=json.dumps(allocation['foreground_regions'],ensure_ascii=False,sort_keys=True,separators=(',',':'))
+        scene_action='融景保留' if role=='background' else '融景清空'
+        content_action='独立内容移除' if role=='background' else '独立内容保留'
+        image_action='一并移除并恢复下方背景' if role=='background' else '一并保留'
+        goal+='按冻结分层清单执行，区域坐标为工作图[x,y,width,height]。'+scene_action+scenes+'。'+content_action+content+'。'
+        goal+='同一融景中的人物、物件和图内文字随融景归属。独立图片完整矩形及图内全部内容'+image_action+'。'
+    if role in ('foreground','board') and not request['transparent_background']:
+        goal+='空区使用锁定请求规定的纯色底。'
+    if task.get('keyed_material_policy') == 'keyed-materials/1':
+        colours={'magenta':'RGB(255,0,255)','green':'RGB(0,255,0)',
+                 'cyan':'RGB(0,255,255)','yellow':'RGB(255,255,0)'}
+        goal+='空区统一为'+colours[task['matte_key']]+'，不绘制白灰棋盘或整页底图，程序会把该底色转成实际透明。'
+    if role == 'background' and task.get('background_scene_emphasis'):
+        goal+='原图与边缘融为一体的场景人物、书桌、书堆、室内环境及景物按原位保留，清除独立内容和页面文字。'
+    if role == 'background' and task.get('background_repair_reference'):
+        goal=('在第一张待修背景上只修复锁定提示列出的具体缺陷，其余已清空区域保留。'
+              '第二张原图事实仅用于找回遗漏场景及原位置，页面标题、正文和独立内容图片保持清空。'+goal)
+    references=[]
+    for index,path in enumerate(request['references'],1):
+        if role=='background' and task.get('background_repair_reference'):
+            use='待修背景编辑目标' if index==1 else '原图事实定位'
+        elif role=='wordart' and task.get('source_detail') is not None:
+            if task['source_detail'].get('reference_policy') == TITLE_REFERENCE_POLICY:
+                use='唯一source_parts真实源标题参考及完整组比例'
+            else:
+                use='真实源局部外观和完整组比例' if index==1 else '完整原图身份和位置'
+        else:
+            use=('当前格网布局' if index==1 else '原图外观') if role=='board' else '工作原图外观'
+        references.append('参考'+str(index)+'（'+Path(path).name+'）提供'+use)
+    reference_text='，'.join(references)+'。' if references else ''
+    return ('本轮直接调用当前'+role+'任务一次，输出1张'+mode+'。'+goal+reference_text+
+            '获得回图后保存、实际查看并登记该次结果，按控制器下一动作继续。'
+            '显式prompt及参考字段可用时传锁定原文与原参考顺序，通过宿主真实支持的机制提供参考，字段按request实际值执行。'
+            '未暴露信息保留unknown，executed_prompt仅记服务实际暴露的原文。'
+            '上下文无法隔离时先登记再下一任务，独立绑定且宿主支持时可并行。'
+            '原许可范围保持一次调用，重复begin或waiting只等待、保存或登记已有回图。')
 
 
 def enabled(state):
@@ -136,7 +263,7 @@ def normalize_request(work,task,public,request):
         arguments=request['tool_arguments']
         if not isinstance(arguments,dict):raise ValueError('tool_arguments must be a JSON object when available.')
         _safe_arguments(arguments)
-        if 'prompt' in arguments and arguments['prompt']!=prompt:
+        if 'prompt' in arguments and arguments['prompt'] is not None and arguments['prompt']!=prompt:
             raise ValueError('The recorded tool prompt contradicts the normalized prompt.')
         for key in ('n','num_images','num_outputs','requested_outputs'):
             if key in arguments and (type(arguments[key]) is not int or arguments[key]!=1):
@@ -163,6 +290,8 @@ def normalize_request(work,task,public,request):
         for key,index in [('width',0),('height',1)]:
             if key in arguments and arguments[key]!=result['size'][index]:
                 raise ValueError('Recorded tool dimensions contradict the normalized request.')
+        if 'prompt' in arguments and arguments['prompt'] is None:
+            unverified.append('prompt')
         result['tool_arguments']=copy.deepcopy(arguments)
         result['unverified_tool_argument_fields']=unverified
     return result
@@ -193,7 +322,7 @@ def begin(work,task,public,request):
             'result_template':copy.deepcopy(public['result_template']),
             'failure_template':copy.deepcopy(public['failure_template']),
             'invocation_provenance':PROVENANCE,
-            'instructions':'Invoke the recorded image request exactly once now, then save and register its first result. This transition reply alone permits that call. Never replay it, shorten the prompt, omit references, or invoke again while waiting. This record is a caller declaration, not provider telemetry.'}
+            'instructions':_invocation_instructions(task,normalized)}
 
 
 def require_started(task):
